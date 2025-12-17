@@ -1,6 +1,6 @@
 import sql from "mssql";
 import dotenv from "dotenv";
-import dns from "dns";
+// import dns from "dns";
 
 dotenv.config();
 
@@ -26,8 +26,8 @@ let pool;
 export const getConnection = async () => {
   try {
     if (!pool) {
-      console.log("DB_USER =>", process.env.DB_USER);
-      console.log("DB_SERVER =>", process.env.DB_SERVER);
+      // console.log("DB_USER =>", process.env.DB_USER);
+      // console.log("DB_SERVER =>", process.env.DB_SERVER);
 
       pool = await sql.connect(config);
       console.log("✅ Conectado a Azure SQL");
@@ -39,6 +39,13 @@ export const getConnection = async () => {
   }
 };
 
-dns.lookup("google.com", (err, address) => {
-  console.log("IP de salida real:", address);
-});
+// dns.lookup("google.com", (err, address) => {
+//   console.log("IP de salida real:", address);
+// });
+
+export const closeConnection = async () => {
+  if (pool) {
+    await pool.close();
+    pool = null;
+  }
+};

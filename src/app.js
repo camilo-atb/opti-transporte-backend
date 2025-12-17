@@ -9,9 +9,10 @@ import cors from "cors";
 
 import rutas from "./routes/routes.js";
 import errorHandler from "./middleware/errorHandler.js";
-import { getConnection } from "./config/db.js";
+import { closeConnection } from "./config/db.js";
 
 const app = express();
+app.disable("x-powered-by");
 const PORT = process.env.PORT || 3000;
 
 // Middlewares globales
@@ -28,14 +29,18 @@ app.get("/", (req, res) => {
   });
 });
 
-// probar conexión DB
-getConnection();
-
 // Rutas
 rutas(app);
 
 // Middleware de errores
 app.use(errorHandler);
+
+// Shutdown
+process.on("SIGTERM", async () => {
+  console.log("🛑 SIGTERM recibido. Cerrando conexiones...");
+  await closeConnection();
+  process.exit(0);
+});
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
