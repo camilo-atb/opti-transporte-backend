@@ -19,6 +19,15 @@ app.use(cors());
 app.use(helmet());
 app.use(bodyParser.json());
 
+// Ruta raíz (health check)
+app.get("/", (req, res) => {
+  res.status(200).json({
+    status: "ok",
+    service: "Opti Transporte API",
+    environment: process.env.NODE_ENV || "development"
+  });
+});
+
 // probar conexión DB
 getConnection();
 
