@@ -7,6 +7,9 @@ const authenticate = async (req, res, next) => {
   //console.log("AUTH HEADER:", req.headers.authorization);
 
   const token = req.headers.authorization?.split(" ")[1];
+  console.log("API_KEY ENV:", process.env.API_KEY);
+  console.log("HEADER:", req.headers["x-api-key"]);
+  console.log("URL:", req.originalUrl);
 
 
   // Ver el token extraído
@@ -15,6 +18,9 @@ const authenticate = async (req, res, next) => {
   if (!token) {
     return res.status(401).json({ error: "Sin autorización" });
   }
+  console.log("API_KEY ENV:", process.env.API_KEY);
+  console.log("HEADER:", req.headers["x-api-key"]);
+  console.log("URL:", req.originalUrl);
 
   const {
     data: { user },
