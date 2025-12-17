@@ -1,4 +1,5 @@
-import pool from "../config/db.js";
+import { getConnection } from "../config/db.js";
+import sql from "mssql";
 
 class Destinos {
   constructor() {
@@ -6,113 +7,147 @@ class Destinos {
     this.tablePage = "destinos_page";
   }
 
-  // Crear una tarjeta
+  // Crear tarjeta
   async createCard(rutaImagen, nombreDestino, fraseIntroductoria) {
-    const { rows } = await pool.query(
-      `INSERT INTO ${this.tableCard} (imagen_url, nombre_destino, frase_introductoria)
-      VALUES ($1, $2, $3)
-      RETURNING *`,
-      [rutaImagen, nombreDestino, fraseIntroductoria]
-    );
-    return rows[0];
+    const pool = await getConnection();
+
+    const result = await pool.request()
+      .input("imagen_url", sql.NVarChar, rutaImagen)
+      .input("nombre_destino", sql.NVarChar, nombreDestino)
+      .input("frase_introductoria", sql.NVarChar, fraseIntroductoria)
+      .query(`
+        INSERT INTO ${this.tableCard} (imagen_url, nombre_destino, frase_introductoria)
+        OUTPUT INSERTED.*
+        VALUES (@imagen_url, @nombre_destino, @frase_introductoria)
+      `);
+
+    return result.recordset[0];
   }
 
-  // Crear una página asociada
+  // Crear página
   async createPage(rutaImagen, nombreDestino, contenidoPage, destinoId) {
-    const { rows } = await pool.query(
-      `INSERT INTO ${this.tablePage} (imagen_url, nombre_destino, contenido_page, destino_id)
-      VALUES ($1, $2, $3, $4)
-      RETURNING *`,
-      [rutaImagen, nombreDestino, contenidoPage, destinoId]
-    );
-    return rows[0];
+    const pool = await getConnection();
+
+    const result = await pool.request()
+      .input("imagen_url", sql.NVarChar, rutaImagen)
+      .input("nombre_destino", sql.NVarChar, nombreDestino)
+      .input("contenido_page", sql.NVarChar, contenidoPage)
+      .input("destino_id", sql.Int, destinoId)
+      .query(`
+        INSERT INTO ${this.tablePage} (imagen_url, nombre_destino, contenido_page, destino_id)
+        OUTPUT INSERTED.*
+        VALUES (@imagen_url, @nombre_destino, @contenido_page, @destino_id)
+      `);
+
+    return result.recordset[0];
   }
 
-  // Editar una tarjeta
+  // Editar tarjeta
   async editCard(id, datos) {
-    const obtenerCard = await pool.query(`SELECT * FROM ${this.tableCard} WHERE id = $1`, [id]);
+    const pool = await getConnection();
 
-    if (obtenerCard.rowCount === 0) {
-      throw new Error(`No existe la carta con id ${id}`);
+    const actual = await pool.request()
+      .input("id", sql.Int, id)
+      .query(`SELECT * FROM ${this.tableCard} WHERE id = @id`);
+
+    if (actual.recordset.length === 0) {
+      throw new Error(`No existe la tarjeta con id ${id}`);
     }
 
-    const card = obtenerCard.rows[0];
+    const card = actual.recordset[0];
 
-    const {
-      rutaImagen = card.imagen_url,
-      nombreDestino = card.nombre_destino,
-      fraseIntroductoria = card.frase_introductoria,
-    } = datos;
+    const result = await pool.request()
+      .input("id", sql.Int, id)
+      .input("imagen_url", sql.NVarChar, datos.rutaImagen ?? card.imagen_url)
+      .input("nombre_destino", sql.NVarChar, datos.nombreDestino ?? card.nombre_destino)
+      .input("frase_introductoria", sql.NVarChar, datos.fraseIntroductoria ?? card.frase_introductoria)
+      .query(`
+        UPDATE ${this.tableCard}
+        SET imagen_url = @imagen_url,
+            nombre_destino = @nombre_destino,
+            frase_introductoria = @frase_introductoria,
+            fecha_modificacion = SYSDATETIME()
+        OUTPUT INSERTED.*
+        WHERE id = @id
+      `);
 
-    const { rows } = await pool.query(
-      `UPDATE ${this.tableCard}
-      SET imagen_url = $1,
-      nombre_destino = $2,
-      frase_introductoria = $3,
-      fecha_modificacion = NOW()
-      WHERE id = $4
-      RETURNING *`,
-      [rutaImagen, nombreDestino, fraseIntroductoria, id]
-    );
-
-    return rows[0];
+    return result.recordset[0];
   }
 
+  // Editar página
   async editPage(id, datos) {
-    const obtenerPage = await pool.query(`SELECT * FROM destinos_page WHERE id = $1`, [id]);
+    const pool = await getConnection();
 
-    if (obtenerPage.rowCount === 0) {
+    const actual = await pool.request()
+      .input("id", sql.Int, id)
+      .query(`SELECT * FROM ${this.tablePage} WHERE id = @id`);
+
+    if (actual.recordset.length === 0) {
       throw new Error(`No existe la página con id ${id}`);
     }
 
-    const page = obtenerPage.rows[0];
+    const page = actual.recordset[0];
 
-    const {
-      imagen_url = page.imagen_url,
-      nombre_destino = page.nombre_destino,
-      contenido_page = page.contenido_page,
-    } = datos;
+    const result = await pool.request()
+      .input("id", sql.Int, id)
+      .input("imagen_url", sql.NVarChar, datos.imagen_url ?? page.imagen_url)
+      .input("nombre_destino", sql.NVarChar, datos.nombre_destino ?? page.nombre_destino)
+      .input("contenido_page", sql.NVarChar, datos.contenido_page ?? page.contenido_page)
+      .query(`
+        UPDATE ${this.tablePage}
+        SET imagen_url = @imagen_url,
+            nombre_destino = @nombre_destino,
+            contenido_page = @contenido_page,
+            fecha_modificacion = SYSDATETIME()
+        OUTPUT INSERTED.*
+        WHERE id = @id
+      `);
 
-    const { rows } = await pool.query(
-      `UPDATE destinos_page
-        SET imagen_url = $1,
-            nombre_destino = $2,
-            contenido_page = $3,
-            fecha_modificacion = NOW()
-        WHERE id = $4
-        RETURNING *`,
-      [imagen_url, nombre_destino, contenido_page, id]
-    );
-
-    return rows[0];
+    return result.recordset[0];
   }
 
-  // Obtener todas las tarjetas
+  // Obtener tarjetas
   async getAllCards() {
-    const { rows } = await pool.query(
-      `SELECT * FROM ${this.tableCard} WHERE activo = TRUE ORDER BY fecha_publicacion DESC`
-    );
-    return rows;
+    const pool = await getConnection();
+
+    const result = await pool.request().query(`
+      SELECT * FROM ${this.tableCard}
+      WHERE activo = 1
+      ORDER BY fecha_publicacion DESC
+    `);
+
+    return result.recordset;
   }
 
-  // Obtener una tarjeta con su página
+  // Obtener destino completo
   async getDestinoCompleto(id) {
-    const { rows } = await pool.query(
-      `SELECT c.*, p.contenido_page
-            FROM ${this.tableCard} c
-            LEFT JOIN ${this.tablePage} p ON c.id = p.destino_id
-            WHERE c.id = $1`,
-      [id]
-    );
-    return rows[0];
+    const pool = await getConnection();
+
+    const result = await pool.request()
+      .input("id", sql.Int, id)
+      .query(`
+        SELECT c.*, p.contenido_page
+        FROM ${this.tableCard} c
+        LEFT JOIN ${this.tablePage} p ON c.id = p.destino_id
+        WHERE c.id = @id
+      `);
+
+    return result.recordset[0];
   }
 
   // Eliminar tarjeta
   async deleteCard(id) {
-    const { rowCount } = await pool.query(`DELETE FROM ${this.tableCard} WHERE id = $1`, [id]);
+    const pool = await getConnection();
 
-    if (rowCount === 0) {
-      throw new Error(`No existe la carta con id ${id}`);
+    const result = await pool.request()
+      .input("id", sql.Int, id)
+      .query(`
+        DELETE FROM ${this.tableCard}
+        WHERE id = @id
+      `);
+
+    if (result.rowsAffected[0] === 0) {
+      throw new Error(`No existe la tarjeta con id ${id}`);
     }
 
     return { message: "Destino eliminado correctamente" };

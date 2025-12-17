@@ -1,4 +1,5 @@
-import pool from "../config/db.js";
+import { getConnection } from "../config/db.js";
+import sql from "mssql";
 
 class OpinionesService {
   constructor() {
@@ -14,92 +15,119 @@ class OpinionesService {
       throw new Error("Faltan campos obligatorios");
     }
 
-    const query = `
-        INSERT INTO ${this.tableOpiniones} (user_id, puntuacion, titulo_opinion, opinion)
-        VALUES ($1, $2, $3, $4)
-        RETURNING *;
-        `;
+    const pool = await getConnection();
 
-    const values = [userId, puntuacion, tituloOpinion, opinion];
-    const { rows } = await pool.query(query, values);
+    const result = await pool.request()
+      .input("userId", sql.Int, userId)
+      .input("puntuacion", sql.SmallInt, puntuacion)
+      .input("titulo", sql.NVarChar, tituloOpinion || null)
+      .input("opinion", sql.NVarChar, opinion)
+      .query(`
+        INSERT INTO ${this.tableOpiniones}
+          (user_id, puntuacion, titulo_opinion, opinion)
+        OUTPUT INSERTED.*
+        VALUES (@userId, @puntuacion, @titulo, @opinion)
+      `);
 
-    return rows[0];
+    return result.recordset[0];
   }
 
   // Obtener todas las opiniones
   async getOpiniones(aprobadas = true) {
-    const query = `
-        SELECT 
-            o.id,
-            o.puntuacion,
-            o.titulo_opinion,
-            o.opinion,
-            o.aprobado,
-            o.fecha_publicacion,
-            o.fecha_modificacion,
-            u.nombre,
-            u.apellido,
-            u.ruta_imagen
-        FROM ${this.tableOpiniones} o
-        JOIN ${this.tableUsuarios} u ON o.user_id = u.id
-        ${aprobadas ? "WHERE o.aprobado = TRUE" : ""}
-        ORDER BY o.fecha_publicacion DESC;
-        `;
-    const { rows } = await pool.query(query);
-    return rows;
+    const pool = await getConnection();
+
+    const result = await pool.request().query(`
+      SELECT 
+        o.id,
+        o.puntuacion,
+        o.titulo_opinion,
+        o.opinion,
+        o.aprobado,
+        o.fecha_publicacion,
+        o.fecha_modificacion,
+        u.nombre,
+        u.apellido,
+        u.ruta_imagen
+      FROM ${this.tableOpiniones} o
+      INNER JOIN ${this.tableUsuarios} u ON o.user_id = u.id
+      ${aprobadas ? "WHERE o.aprobado = 1" : ""}
+      ORDER BY o.fecha_publicacion DESC
+    `);
+
+    return result.recordset;
   }
 
   // Obtener una sola opinión por ID
   async getOpinionById(id) {
-    const query = `
+    const pool = await getConnection();
+
+    const result = await pool.request()
+      .input("id", sql.Int, id)
+      .query(`
         SELECT 
-            o.*,
-            u.nombre,
-            u.apellido,
-            u.ruta_imagen
+          o.*,
+          u.nombre,
+          u.apellido,
+          u.ruta_imagen
         FROM ${this.tableOpiniones} o
-        JOIN ${this.tableUsuarios} u ON o.user_id = u.id
-        WHERE o.id = $1;
-        `;
-    const { rows } = await pool.query(query, [id]);
-    return rows[0];
+        INNER JOIN ${this.tableUsuarios} u ON o.user_id = u.id
+        WHERE o.id = @id
+      `);
+
+    return result.recordset[0];
   }
 
-  // Actualizar una opinión (solo autor o admin)
+  // Actualizar una opinión
   async updateOpinion(idOpinion, data) {
     const { puntuacion, tituloOpinion, opinion, aprobado } = data;
 
-    const query = `
+    const pool = await getConnection();
+
+    const result = await pool.request()
+      .input("puntuacion", sql.SmallInt, puntuacion ?? null)
+      .input("titulo", sql.NVarChar, tituloOpinion ?? null)
+      .input("opinion", sql.NVarChar, opinion ?? null)
+      .input("aprobado", sql.Bit, aprobado ?? null)
+      .input("id", sql.Int, idOpinion)
+      .query(`
         UPDATE ${this.tableOpiniones}
         SET 
-            puntuacion = COALESCE($1, puntuacion),
-            titulo_opinion = COALESCE($2, titulo_opinion),
-            opinion = COALESCE($3, opinion),
-            aprobado = COALESCE($4, aprobado),
-            fecha_modificacion = NOW()
-        WHERE id = $5
-        RETURNING *;
-        `;
-    const values = [puntuacion, tituloOpinion, opinion, aprobado, idOpinion];
-    const { rows } = await pool.query(query, values);
+          puntuacion = COALESCE(@puntuacion, puntuacion),
+          titulo_opinion = COALESCE(@titulo, titulo_opinion),
+          opinion = COALESCE(@opinion, opinion),
+          aprobado = COALESCE(@aprobado, aprobado),
+          fecha_modificacion = SYSDATETIME()
+        OUTPUT INSERTED.*
+        WHERE id = @id
+      `);
 
-    if (rows.length === 0) {
+    if (result.recordset.length === 0) {
       throw new Error("Opinión no encontrada");
     }
 
-    return rows[0];
+    return result.recordset[0];
   }
 
   // Eliminar una opinión
   async deleteOpinion(idOpinion) {
-    const query = `DELETE FROM ${this.tableOpiniones} WHERE id = $1 RETURNING *;`;
-    const { rows } = await pool.query(query, [idOpinion]);
+    const pool = await getConnection();
 
-    if (rows.length === 0) {
+    const result = await pool.request()
+      .input("id", sql.Int, idOpinion)
+      .query(`
+        DELETE FROM ${this.tableOpiniones}
+        OUTPUT DELETED.*
+        WHERE id = @id
+      `);
+
+    if (result.recordset.length === 0) {
       throw new Error("Opinión no encontrada");
     }
 
-    return { mensaje: "Opinión eliminada correctamente", opinion: rows[0] };
+    return {
+      mensaje: "Opinión eliminada correctamente",
+      opinion: result.recordset[0],
+    };
   }
 }
 

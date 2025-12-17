@@ -1,4 +1,5 @@
-import pool from "../config/db.js";
+import { getConnection } from "../config/db.js";
+import sql from "mssql";
 
 class LogosService {
   constructor() {
@@ -7,62 +8,101 @@ class LogosService {
 
   // Crear logo
   async create(imagen_url, empresa_url, alt_text, title) {
-    const { rows } = await pool.query(
-      `INSERT INTO ${this.table} 
-            (imagen_url, empresa_url, alt_text, title)
-            VALUES ($1, $2, $3, $4)
-            RETURNING *`,
-      [imagen_url, empresa_url, alt_text, title]
-    );
-    return rows[0];
+    const pool = await getConnection();
+
+    const result = await pool.request()
+      .input("imagen_url", sql.NVarChar, imagen_url)
+      .input("empresa_url", sql.NVarChar, empresa_url)
+      .input("alt_text", sql.NVarChar, alt_text)
+      .input("title", sql.NVarChar, title)
+      .query(`
+        INSERT INTO ${this.table}
+          (imagen_url, empresa_url, alt_text, title)
+        OUTPUT INSERTED.*
+        VALUES (@imagen_url, @empresa_url, @alt_text, @title)
+      `);
+
+    return result.recordset[0];
   }
 
   // Obtener todos los logos activos
   async getAll() {
-    const { rows } = await pool.query(
-      `SELECT * FROM ${this.table} 
-             WHERE activo = TRUE 
-             ORDER BY fecha_publicacion DESC`
-    );
-    return rows;
+    const pool = await getConnection();
+
+    const result = await pool.request().query(`
+      SELECT *
+      FROM ${this.table}
+      WHERE activo = 1
+      ORDER BY fecha_publicacion DESC
+    `);
+
+    return result.recordset;
   }
 
   // Obtener un logo por ID
   async getById(id) {
-    const { rows } = await pool.query(`SELECT * FROM ${this.table} WHERE id = $1`, [id]);
-    return rows[0];
+    const pool = await getConnection();
+
+    const result = await pool.request()
+      .input("id", sql.Int, id)
+      .query(`
+        SELECT *
+        FROM ${this.table}
+        WHERE id = @id
+      `);
+
+    return result.recordset[0];
   }
 
-  // Actualizar logo
+  // Actualizar logo (dinámico)
   async update(id, camposActualizados) {
+    const pool = await getConnection();
+
     const columnas = Object.keys(camposActualizados);
-    const valores = Object.values(camposActualizados);
 
-    if (columnas.length === 0) throw new Error("No hay campos para actualizar.");
+    if (columnas.length === 0) {
+      throw new Error("No hay campos para actualizar.");
+    }
 
-    const setQuery = columnas.map((columna, index) => `${columna} = $${index + 1}`).join(", ");
+    // Construcción dinámica segura
+    const setQuery = columnas
+      .map((col, index) => `${col} = @valor${index}`)
+      .join(", ");
 
-    const query = `
-            UPDATE ${this.table}
-            SET ${setQuery}, fecha_modificacion = NOW()
-            WHERE id = $${columnas.length + 1}
-            RETURNING *;
-        `;
+    const request = pool.request();
 
-    const { rows } = await pool.query(query, [...valores, id]);
-    return rows[0];
+    columnas.forEach((col, index) => {
+      request.input(`valor${index}`, sql.NVarChar, camposActualizados[col]);
+    });
+
+    request.input("id", sql.Int, id);
+
+    const result = await request.query(`
+      UPDATE ${this.table}
+      SET ${setQuery},
+          fecha_modificacion = SYSDATETIME()
+      OUTPUT INSERTED.*
+      WHERE id = @id
+    `);
+
+    return result.recordset[0];
   }
 
-  // Eliminación lógica (marcar como inactivo)
+  // Eliminación lógica (soft delete)
   async softDelete(id) {
-    const { rows } = await pool.query(
-        `UPDATE ${this.table}
-        SET activo = FALSE, fecha_modificacion = NOW()
-        WHERE id = $1
-        RETURNING *`,
-      [id]
-    );
-    return rows[0];
+    const pool = await getConnection();
+
+    const result = await pool.request()
+      .input("id", sql.Int, id)
+      .query(`
+        UPDATE ${this.table}
+        SET activo = 0,
+            fecha_modificacion = SYSDATETIME()
+        OUTPUT INSERTED.*
+        WHERE id = @id
+      `);
+
+    return result.recordset[0];
   }
 }
 

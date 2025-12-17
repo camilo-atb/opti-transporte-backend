@@ -1,4 +1,5 @@
-import pool from "../config/db.js";
+import { getConnection } from "../config/db.js";
+import sql from "mssql";
 
 class NoticiasService {
   constructor() {
@@ -7,32 +8,53 @@ class NoticiasService {
 
   // Crear noticia
   async crearNoticia(titulo, resumen, contenidoCompleto, urlImage, autor, categoria) {
-    const categoriaResult = await pool.query(`SELECT id FROM categorias WHERE categoria = $1`, [
-      categoria,
-    ]);
+    const pool = await getConnection();
 
-    if (!categoriaResult.rowCount) {
+    // Obtener ID de categoría
+    const categoriaResult = await pool.request()
+      .input("categoria", sql.NVarChar, categoria)
+      .query(`
+        SELECT id
+        FROM categorias
+        WHERE categoria = @categoria
+      `);
+
+    if (categoriaResult.recordset.length === 0) {
       throw new Error(`La categoría "${categoria}" no existe.`);
     }
 
-    const categoriaId = categoriaResult.rows[0].id;
+    const categoriaId = categoriaResult.recordset[0].id;
 
-    const { rows } = await pool.query(
-      `INSERT INTO ${this.tabla} 
-            (titulo, resumen, contenido_principal, ruta_imagen, autor, categoria)
-            VALUES ($1, $2, $3, $4, $5, $6)
-            RETURNING *`,
-      [titulo, resumen, contenidoCompleto, urlImage, autor, categoriaId]
-    );
+    const result = await pool.request()
+      .input("titulo", sql.NVarChar, titulo)
+      .input("resumen", sql.NVarChar, resumen)
+      .input("contenido", sql.NVarChar, contenidoCompleto)
+      .input("ruta_imagen", sql.NVarChar, urlImage)
+      .input("autor", sql.NVarChar, autor)
+      .input("categoriaId", sql.Int, categoriaId)
+      .query(`
+        INSERT INTO ${this.tabla}
+          (titulo, resumen, contenido_principal, ruta_imagen, autor, categoria)
+        OUTPUT INSERTED.*
+        VALUES (@titulo, @resumen, @contenido, @ruta_imagen, @autor, @categoriaId)
+      `);
 
-    return rows[0];
+    return result.recordset[0];
   }
 
   // Eliminar noticia
   async eliminarNoticia(idNoticia) {
-    const { rowCount } = await pool.query(`DELETE FROM ${this.tabla} WHERE id = $1`, [idNoticia]);
+    const pool = await getConnection();
 
-    if (rowCount === 0) {
+    const result = await pool.request()
+      .input("id", sql.Int, idNoticia)
+      .query(`
+        DELETE FROM ${this.tabla}
+        OUTPUT DELETED.*
+        WHERE id = @id
+      `);
+
+    if (result.recordset.length === 0) {
       throw new Error(`No se encontró ninguna noticia con id ${idNoticia}`);
     }
 
@@ -41,18 +63,19 @@ class NoticiasService {
 
   // Editar noticia
   async editarNoticia(idNoticia, datos) {
-    // Buscar noticia actual
-    const noticiaActual = await pool.query(`SELECT * FROM ${this.tabla} WHERE id = $1`, [
-      idNoticia,
-    ]);
+    const pool = await getConnection();
 
-    if (noticiaActual.rowCount === 0) {
+    // Obtener noticia actual
+    const noticiaActual = await pool.request()
+      .input("id", sql.Int, idNoticia)
+      .query(`SELECT * FROM ${this.tabla} WHERE id = @id`);
+
+    if (noticiaActual.recordset.length === 0) {
       throw new Error(`No existe la noticia con id ${idNoticia}`);
     }
 
-    const actual = noticiaActual.rows[0];
+    const actual = noticiaActual.recordset[0];
 
-    // Combinar datos con valores actuales
     const {
       titulo = actual.titulo,
       resumen = actual.resumen,
@@ -62,52 +85,91 @@ class NoticiasService {
       categoria = actual.categoria,
     } = datos;
 
-    // Obtener ID de categoría
-    const categoriaIdQuery = await pool.query("SELECT id FROM categorias WHERE categoria = $1", [
-      categoria,
-    ]);
+    // Resolver categoría (nombre o id)
+    let categoriaId = categoria;
 
-    const categoriaId = categoriaIdQuery.rowCount > 0 ? categoriaIdQuery.rows[0].id : categoria; // Si ya es ID numérico
+    if (isNaN(categoria)) {
+      const categoriaResult = await pool.request()
+        .input("categoria", sql.NVarChar, categoria)
+        .query(`SELECT id FROM categorias WHERE categoria = @categoria`);
 
-    // Actualizar noticia
-    const { rows } = await pool.query(
-      `UPDATE ${this.tabla}
-            SET titulo = $1, resumen = $2, contenido_principal = $3, ruta_imagen = $4, autor = $5, categoria = $6
-            WHERE id = $7
-            RETURNING *`,
-      [titulo, resumen, contenido_principal, ruta_imagen, autor, categoriaId, idNoticia]
-    );
+      if (categoriaResult.recordset.length === 0) {
+        throw new Error(`La categoría "${categoria}" no existe.`);
+      }
 
-    return rows[0];
+      categoriaId = categoriaResult.recordset[0].id;
+    }
+
+    const result = await pool.request()
+      .input("titulo", sql.NVarChar, titulo)
+      .input("resumen", sql.NVarChar, resumen)
+      .input("contenido", sql.NVarChar, contenido_principal)
+      .input("ruta_imagen", sql.NVarChar, ruta_imagen)
+      .input("autor", sql.NVarChar, autor)
+      .input("categoriaId", sql.Int, categoriaId)
+      .input("id", sql.Int, idNoticia)
+      .query(`
+        UPDATE ${this.tabla}
+        SET titulo = @titulo,
+            resumen = @resumen,
+            contenido_principal = @contenido,
+            ruta_imagen = @ruta_imagen,
+            autor = @autor,
+            categoria = @categoriaId,
+            fecha_modificacion = SYSDATETIME()
+        OUTPUT INSERTED.*
+        WHERE id = @id
+      `);
+
+    return result.recordset[0];
   }
 
-  // Mostrar solo cards
+  // Mostrar noticias tipo card
   async mostrarNoticiasCards() {
-    const { rows } = await pool.query(
-      `SELECT n.id, n.titulo, n.resumen, n.ruta_imagen, n.autor, c.categoria
-            FROM ${this.tabla} n
-            INNER JOIN categorias c ON n.categoria = c.id
-            ORDER BY n.fecha_publicacion DESC`
-    );
-    return rows;
+    const pool = await getConnection();
+
+    const result = await pool.request().query(`
+      SELECT
+        n.id,
+        n.titulo,
+        n.resumen,
+        n.ruta_imagen,
+        n.autor,
+        c.categoria
+      FROM ${this.tabla} n
+      INNER JOIN categorias c ON n.categoria = c.id
+      ORDER BY n.fecha_publicacion DESC
+    `);
+
+    return result.recordset;
   }
 
-  // Mostrar noticia completa
+  // Mostrar noticia completa por ID
   async mostrarNoticiaPorId(id) {
-    const { rows } = await pool.query(
-      `SELECT n.id, n.titulo, n.resumen, n.contenido_principal, n.ruta_imagen,
-                    n.autor, c.categoria, n.fecha_publicacion
-            FROM ${this.tabla} n
-            INNER JOIN categorias c ON n.categoria = c.id
-            WHERE n.id = $1`,
-      [id]
-    );
+    const pool = await getConnection();
 
-    if (!rows.length) {
+    const result = await pool.request()
+      .input("id", sql.Int, id)
+      .query(`
+        SELECT
+          n.id,
+          n.titulo,
+          n.resumen,
+          n.contenido_principal,
+          n.ruta_imagen,
+          n.autor,
+          c.categoria,
+          n.fecha_publicacion
+        FROM ${this.tabla} n
+        INNER JOIN categorias c ON n.categoria = c.id
+        WHERE n.id = @id
+      `);
+
+    if (result.recordset.length === 0) {
       throw new Error("No se encontró la noticia.");
     }
 
-    return rows[0];
+    return result.recordset[0];
   }
 }
 
