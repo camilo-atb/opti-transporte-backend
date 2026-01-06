@@ -86,22 +86,22 @@ class NoticiasService {
     } = datos;
 
     // Resolver categoría (nombre o id)
-    let categoriaId = actual.categoria;
+    let categoriaId;
 
-    if (categoria !== undefined && categoria !== null && categoria !== "") {
-      if (isNaN(categoria)) {
-        const categoriaResult = await pool.request()
-          .input("categoria", sql.NVarChar, categoria)
-          .query(`SELECT id FROM categorias WHERE categoria = @categoria`);
+    if (typeof categoria === "number") {
+      categoriaId = categoria;
+    } else if (typeof categoria === "string" && categoria.trim() !== "") {
+      const categoriaResult = await pool.request()
+        .input("categoria", sql.NVarChar, categoria)
+        .query(`SELECT id FROM categorias WHERE categoria = @categoria`);
 
-        if (categoriaResult.recordset.length === 0) {
-          throw new Error(`La categoría "${categoria}" no existe.`);
-        }
-
-        categoriaId = categoriaResult.recordset[0].id;
-      } else {
-        categoriaId = Number(categoria);
+      if (categoriaResult.recordset.length === 0) {
+        throw new Error(`La categoría "${categoria}" no existe.`);
       }
+
+      categoriaId = categoriaResult.recordset[0].id;
+    } else {
+      categoriaId = actual.categoria;
     }
 
     const result = await pool.request()
