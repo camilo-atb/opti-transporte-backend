@@ -60,8 +60,8 @@ const eliminarNoticias = async (req, res, next) => {
       return res.status(404).json({ error: "Usuario no encontrado en la base de datos" });
     }
 
-    const { idNoticia } = req.params;
-    await noticiasService.eliminarNoticia(idNoticia);
+    const { id } = req.params;
+    await noticiasService.eliminarNoticia(id);
 
     res.status(200).json({ mensaje: "Noticia eliminada con éxito" });
   } catch (error) {
