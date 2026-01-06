@@ -61,72 +61,77 @@ class NoticiasService {
     return { mensaje: "Noticia eliminada correctamente" };
   }
 
-  // Editar noticia
-  async editarNoticia(idNoticia, datos) {
-    const pool = await getConnection();
+// Editar noticia
+async editarNoticia(idNoticia, datos) {
+  const pool = await getConnection();
 
-    // Obtener noticia actual
-    const noticiaActual = await pool.request()
-      .input("id", sql.Int, idNoticia)
-      .query(`SELECT * FROM ${this.tabla} WHERE id = @id`);
+  const noticiaActual = await pool.request()
+    .input("id", sql.Int, idNoticia)
+    .query(`SELECT * FROM ${this.tabla} WHERE id = @id`);
 
-    if (noticiaActual.recordset.length === 0) {
-      throw new Error(`No existe la noticia con id ${idNoticia}`);
-    }
+  if (noticiaActual.recordset.length === 0) {
+    throw new Error(`No existe la noticia con id ${idNoticia}`);
+  }
 
-    const actual = noticiaActual.recordset[0];
+  const actual = noticiaActual.recordset[0];
 
-    const {
-      titulo = actual.titulo,
-      resumen = actual.resumen,
-      contenido_principal = actual.contenido_principal,
-      ruta_imagen = actual.ruta_imagen,
-      autor = actual.autor,
-      categoria = actual.categoria,
-    } = datos;
+  const titulo =
+    datos.titulo?.trim() || actual.titulo;
 
-    // Resolver categoría (nombre o id)
-    let categoriaId = actual.categoria;
+  const resumen =
+    datos.resumen?.trim() || actual.resumen;
 
-    if (categoria !== undefined && categoria !== null) {
-      if (typeof categoria === "number") {
-        categoriaId = categoria;
-      } else if (typeof categoria === "string" && categoria.trim() !== "") {
-        const categoriaResult = await pool.request()
-          .input("categoria", sql.NVarChar, categoria)
-          .query(`SELECT id FROM categorias WHERE categoria = @categoria`);
+  const contenido_principal =
+    datos.contenido_principal?.trim() || actual.contenido_principal;
 
-        if (categoriaResult.recordset.length === 0) {
-          throw new Error(`La categoría "${categoria}" no existe.`);
-        }
+  const ruta_imagen =
+    datos.ruta_imagen?.trim() || actual.ruta_imagen;
 
-        categoriaId = categoriaResult.recordset[0].id;
-      }
-    }
+  const autor =
+    datos.autor?.trim() || actual.autor;
 
-    const result = await pool.request()
-      .input("titulo", sql.NVarChar, titulo)
-      .input("resumen", sql.NVarChar, resumen)
-      .input("contenido", sql.NVarChar, contenido_principal)
-      .input("ruta_imagen", sql.NVarChar, ruta_imagen)
-      .input("autor", sql.NVarChar, autor)
-      .input("categoriaId", sql.Int, categoriaId)
-      .input("id", sql.Int, idNoticia)
+  let categoria = datos.categoria ?? actual.categoria;
+
+  let categoriaId = categoria;
+
+  if (typeof categoria === "string") {
+    const categoriaResult = await pool.request()
+      .input("categoria", sql.NVarChar, categoria.trim().toLowerCase())
       .query(`
-        UPDATE ${this.tabla}
-        SET titulo = @titulo,
-            resumen = @resumen,
-            contenido_principal = @contenido,
-            ruta_imagen = @ruta_imagen,
-            autor = @autor,
-            categoria = @categoriaId,
-            fecha_modificacion = SYSDATETIME()
-        OUTPUT INSERTED.*
-        WHERE id = @id
+        SELECT id
+        FROM categorias
+        WHERE LOWER(categoria) = @categoria
       `);
 
-    return result.recordset[0];
+    if (categoriaResult.recordset.length === 0) {
+      throw new Error(`La categoría "${categoria}" no existe.`);
+    }
+
+    categoriaId = categoriaResult.recordset[0].id;
   }
+
+  const result = await pool.request()
+    .input("titulo", sql.NVarChar, titulo)
+    .input("resumen", sql.NVarChar, resumen)
+    .input("contenido", sql.NVarChar, contenido_principal)
+    .input("ruta_imagen", sql.NVarChar, ruta_imagen)
+    .input("autor", sql.NVarChar, autor)
+    .input("categoriaId", sql.Int, categoriaId)
+    .input("id", sql.Int, idNoticia)
+    .query(`
+      UPDATE ${this.tabla}
+      SET titulo = @titulo,
+          resumen = @resumen,
+          contenido_principal = @contenido,
+          ruta_imagen = @ruta_imagen,
+          autor = @autor,
+          categoria = @categoriaId
+      OUTPUT INSERTED.*
+      WHERE id = @id
+    `);
+
+  return result.recordset[0];
+}
 
   // Mostrar noticia completa por ID
   async mostrarNoticiaPorId(id) {
