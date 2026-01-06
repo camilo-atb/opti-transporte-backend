@@ -9,16 +9,25 @@ const createNoticiaBySuper = async (req, res, next) => {
     const requester = await usuario.mostrarUserPorIdSupabase(requesterId);
 
     if (!requester) {
-      return res.status(404).json({ error: "Usuario no encontrado en la base de datos" });
+      return res.status(404).json({ error: "Usuario no encontrado" });
     }
 
-    const { titulo, resumen, contenido_principal, ruta_imagen, autor, categoria } = req.body;
+    const {
+      titulo,
+      resumen,
+      contenido_principal,
+      ruta_imagen,
+      imagekit_file_id,
+      autor,
+      categoria
+    } = req.body;
 
     const newNotice = await noticiasService.crearNoticia(
       titulo,
       resumen,
       contenido_principal,
       ruta_imagen,
+      imagekit_file_id,
       autor,
       categoria
     );

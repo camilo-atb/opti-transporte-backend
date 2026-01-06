@@ -7,7 +7,15 @@ class NoticiasService {
   }
 
   // Crear noticia
-  async crearNoticia(titulo, resumen, contenidoCompleto, urlImage, autor, categoria) {
+  async crearNoticia(
+    titulo,
+    resumen,
+    contenidoCompleto,
+    urlImage,
+    imagekitFileId,
+    autor,
+    categoria
+  ) {
     const pool = await getConnection();
 
     // Obtener ID de categoría
@@ -30,13 +38,14 @@ class NoticiasService {
       .input("resumen", sql.NVarChar, resumen)
       .input("contenido", sql.NVarChar, contenidoCompleto)
       .input("ruta_imagen", sql.NVarChar, urlImage)
+      .input("imagekit_file_id", sql.NVarChar, imagekitFileId)
       .input("autor", sql.NVarChar, autor)
       .input("categoriaId", sql.Int, categoriaId)
       .query(`
         INSERT INTO ${this.tabla}
-          (titulo, resumen, contenido_principal, ruta_imagen, autor, categoria)
+          (titulo, resumen, contenido_principal, ruta_imagen, imagekit_file_id, autor, categoria)
         OUTPUT INSERTED.*
-        VALUES (@titulo, @resumen, @contenido, @ruta_imagen, @autor, @categoriaId)
+        VALUES (@titulo, @resumen, @contenido, @ruta_imagen, @imagekit_file_id, @autor, @categoriaId)
       `);
 
     return result.recordset[0];
@@ -46,20 +55,38 @@ class NoticiasService {
   async eliminarNoticia(idNoticia) {
     const pool = await getConnection();
 
-    const result = await pool.request()
+    const noticiaResult = await pool.request()
       .input("id", sql.Int, idNoticia)
       .query(`
-        DELETE FROM ${this.tabla}
-        OUTPUT DELETED.*
+        SELECT imagekit_file_id
+        FROM ${this.tabla}
         WHERE id = @id
       `);
 
-    if (result.recordset.length === 0) {
+    if (noticiaResult.recordset.length === 0) {
       throw new Error(`No se encontró ninguna noticia con id ${idNoticia}`);
     }
 
+    const { imagekit_file_id } = noticiaResult.recordset[0];
+
+    if (imagekit_file_id) {
+      try {
+        await imagekit.deleteFile(imagekit_file_id);
+      } catch (err) {
+        console.error("Error eliminando imagen en ImageKit:", err.message);
+      }
+    }
+
+    await pool.request()
+      .input("id", sql.Int, idNoticia)
+      .query(`
+        DELETE FROM ${this.tabla}
+        WHERE id = @id
+      `);
+
     return { mensaje: "Noticia eliminada correctamente" };
   }
+
 
 // Editar noticia
 async editarNoticia(idNoticia, datos) {
