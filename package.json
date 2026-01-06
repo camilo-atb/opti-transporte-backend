@@ -4,21 +4,17 @@
   "description": "Backend con node para el desarrollo de la plataforma de la terminal de transporte de Buenaventura",
   "main": "src/app.js",
   "type": "module",
-
   "engines": {
     "node": "20.x"
   },
-
   "scripts": {
     "start": "node src/app.js",
     "dev": "nodemon src/app.js",
     "lint": "eslint . --fix",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-
   "author": "Camilo Téllez, Brayan Vargas, Camila Montaño",
   "license": "ISC",
-
   "dependencies": {
     "@supabase/supabase-js": "^2.57.0",
     "body-parser": "^2.2.0",
@@ -26,10 +22,10 @@
     "dotenv": "^17.2.2",
     "express": "^5.1.0",
     "helmet": "^8.1.0",
+    "imagekit": "^6.0.0",
     "morgan": "^1.10.1",
     "mssql": "^12.2.0"
   },
-
   "devDependencies": {
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",

@@ -8,6 +8,7 @@ import logosRoutes from "./logos.route.js";
 import preguntasRoutes from "./preguntas.route.js";
 import transparenciaRoutes from "./transparencia.route.js";
 import destinosRoutes from "./destinos.route.js";
+import imagekitRoutes from "./imagekit.route.js";
 
 const rutas = (app) => {
   const router = express.Router();
@@ -22,6 +23,7 @@ const rutas = (app) => {
   router.use("/logos", logosRoutes);
   router.use("/destinos", destinosRoutes);
   router.use("/empleados", empleadosRoute);
+  router.use("/imagekit", imagekitRoutes)
 
   app.use("/api", router);
 };
