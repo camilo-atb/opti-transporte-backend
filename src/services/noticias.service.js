@@ -124,26 +124,6 @@ class NoticiasService {
     return result.recordset[0];
   }
 
-  // Mostrar noticias tipo card
-  async mostrarNoticiasCards() {
-    const pool = await getConnection();
-
-    const result = await pool.request().query(`
-      SELECT
-        n.id,
-        n.titulo,
-        n.resumen,
-        n.ruta_imagen,
-        n.autor,
-        c.categoria
-      FROM ${this.tabla} n
-      INNER JOIN categorias c ON n.categoria = c.id
-      ORDER BY n.fecha_publicacion DESC
-    `);
-
-    return result.recordset;
-  }
-
   // Mostrar noticia completa por ID
   async mostrarNoticiaPorId(id) {
     const pool = await getConnection();
@@ -171,6 +151,67 @@ class NoticiasService {
 
     return result.recordset[0];
   }
+
+  // Últimas 3 noticias
+  async mostrarUltimasNoticias(limit = 3) {
+    const pool = await getConnection();
+
+    const result = await pool.request()
+      .input("limit", sql.Int, limit)
+      .query(`
+        SELECT TOP (@limit)
+          n.id,
+          n.titulo,
+          n.resumen,
+          n.ruta_imagen,
+          n.autor,
+          c.categoria,
+          n.fecha_publicacion
+        FROM ${this.tabla} n
+        INNER JOIN categorias c ON n.categoria = c.id
+        ORDER BY n.fecha_publicacion DESC
+      `);
+
+    return result.recordset;
+  }
+
+  // Noticias con paginación
+  async mostrarNoticiasPaginadas(page = 1, limit = 10) {
+    const pool = await getConnection();
+    const offset = (page - 1) * limit;
+
+    const result = await pool.request()
+      .input("limit", sql.Int, limit)
+      .input("offset", sql.Int, offset)
+      .query(`
+        SELECT
+          n.id,
+          n.titulo,
+          n.resumen,
+          n.ruta_imagen,
+          n.autor,
+          c.categoria,
+          n.fecha_publicacion
+        FROM ${this.tabla} n
+        INNER JOIN categorias c ON n.categoria = c.id
+        ORDER BY n.fecha_publicacion DESC
+        OFFSET @offset ROWS
+        FETCH NEXT @limit ROWS ONLY
+      `);
+
+    // total para la paginación
+    const totalResult = await pool.request().query(`
+      SELECT COUNT(*) AS total FROM ${this.tabla}
+    `);
+
+    return {
+      data: result.recordset,
+      total: totalResult.recordset[0].total,
+      page,
+      limit
+    };
+  }
+
 }
 
 const noticiasService = new NoticiasService();
