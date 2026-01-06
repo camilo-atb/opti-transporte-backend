@@ -18,6 +18,6 @@ router.post("/", authenticate, authorize(["super-usuario"]), noticiasController.
 
 router.patch("/:id", authenticate, authorize(["super-usuario"]), noticiasController.modificarNoticia);
 
-router.delete("/:idNoticia", authenticate, authorize(["super-usuario"]), noticiasController.eliminarNoticias);
+router.delete("/:id", authenticate, authorize(["super-usuario"]), noticiasController.eliminarNoticias);
 
 export default router;

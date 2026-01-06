@@ -6,7 +6,7 @@ import authorize from "../middleware/authorize.js";
 const router = express.Router();
 
 router.get(
-    "/auth", authenticate, authorize(["super-usuario"]), imagekitController.getAuthParams
+    "/auth", authenticate, imagekitController.getAuthParams
 );
 
 export default router;
