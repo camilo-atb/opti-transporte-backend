@@ -26,7 +26,6 @@ const authenticate = async (req, res, next) => {
     data: { user },
     error,
   } = await supabase.auth.getUser(token);
-
   
   // Ver respuesta de Supabase
   console.log("SUPABASE ERROR:", error);
@@ -44,6 +43,10 @@ const authenticate = async (req, res, next) => {
 
   if (!userFromDb) {
     return res.status(403).json({ error: "Usuario no registrado en ninguna base local" });
+  }
+
+  if (userFromDb.estado !== "activo") {
+    return res.status(403).json({ error: "Cuenta desactivada" });
   }
 
   req.user = {

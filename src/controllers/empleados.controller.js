@@ -1,14 +1,22 @@
 // controllers/usuarios.controller.js
 import supabase from "../config/supabase.js";
 import userService from "../services/empleado.service.js";
+import pasajerosService from "../services/pasajeros.service.js";
 
 // Obtener rol por id de Supabase
 export const getUserXIdsupabase = async (req, res, next) => {
   try {
     const { id_auth_supabase } = req.params;
-    const rol = await userService.mostrarRolPorId(id_auth_supabase);
+    let rol = await userService.mostrarRolPorId(id_auth_supabase);
+    
+    if (!rol) {
+      rol = await pasajerosService.mostrarRolPorId(id_auth_supabase);
+    }
 
-    if (!rol) return res.status(404).json({ error: "Rol no encontrado para este usuario" });
+    if (!rol) {
+      return res.status(404).json({ error: "Usuario no encontrado" });
+    }
+
     res.status(200).json({ rol });
   } catch (error) {
     next(error);
@@ -18,8 +26,7 @@ export const getUserXIdsupabase = async (req, res, next) => {
 // Crear usuario
 export const createUserByAdmin = async (req, res, next) => {
   try {
-    const requesterId = req.user.id;
-    const requester = await userService.mostrarUserPorIdSupabase(requesterId);
+    const requester = await userService.mostrarUserPorIdSupabase(req.user.id);
 
     if (!requester || requester.rol !== "super-usuario") {
       return res.status(403).json({ error: "No tienes permisos para crear usuarios" });
@@ -38,11 +45,16 @@ export const createUserByAdmin = async (req, res, next) => {
       rol,
       ruta_imagen
     );
-    res.status(201).json({ mensaje: "Usuario creado correctamente", user: newUser });
+
+    res.status(201).json({
+      mensaje: "Usuario creado correctamente",
+      user: newUser
+    });
   } catch (error) {
     next(error);
   }
 };
+
 
 // Actualizar usuario
 export const updateUser = async (req, res, next) => {
@@ -51,20 +63,51 @@ export const updateUser = async (req, res, next) => {
     const requester = req.user;
 
     if (requester.rol !== "super-usuario" && requester.id !== id_auth_supabase) {
-      return res.status(403).json({ error: "No tienes permiso para editar este usuario" });
+      return res.status(403).json({
+        error: "No tienes permiso para editar este usuario"
+      });
     }
 
     const updated = await userService.actualizarUser(id_auth_supabase, req.body);
-    if (!updated) return res.status(404).json({ error: "Usuario no encontrado" });
+    if (!updated) {
+      return res.status(404).json({ error: "Usuario no encontrado" });
+    }
 
-    res.status(200).json({ mensaje: "Usuario actualizado correctamente", usuario: updated });
+    res.status(200).json({
+      mensaje: "Usuario actualizado correctamente",
+      usuario: updated
+    });
   } catch (error) {
     next(error);
   }
 };
 
+
+
+export const desactivarCuenta = async (req, res, next) => {
+  try {
+    const { id_auth_supabase, tipo } = req.params;
+
+    let result;
+    if (tipo === "empleado") {
+      result = await userService.cambiarEstado(id_auth_supabase, "inactivo");
+    } else if (tipo === "pasajero") {
+      result = await pasajerosService.cambiarEstado(id_auth_supabase, "inactivo");
+    } else {
+      return res.status(400).json({ error: "Tipo inválido" });
+    }
+
+    if (!result) return res.status(404).json({ error: "Usuario no encontrado" });
+
+    res.status(200).json({ mensaje: "Cuenta desactivada", usuario: result });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
 // Eliminar usuario
-export const deleteUser = async (req, res, next) => {
+/*export const deleteUser = async (req, res, next) => {
   try {
     const requester = req.user;
     const { id_auth_supabase } = req.params;
@@ -80,9 +123,9 @@ export const deleteUser = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-};
+};*/
 
-export const cambiarPassword = async (req, res, next) => {
+/*export const cambiarPassword = async (req, res, next) => {
   try {
     const { nuevaPassword } = req.body;
     if (!nuevaPassword || nuevaPassword.length < 6) {
@@ -96,19 +139,26 @@ export const cambiarPassword = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-};
+};*/
 
 // Listar usuarios
 export const listarUsuarios = async (req, res, next) => {
   try {
-    const requester = req.user;
-    if (requester.rol !== "super-usuario") {
-      return res.status(403).json({ error: "No tienes permiso para listar usuarios" });
+    if (req.user.rol !== "super-usuario") {
+      return res.status(403).json({ error: "No autorizado" });
     }
 
-    const usuarios = await userService.listarUsers();
-    res.status(200).json(usuarios);
+    const [empleados, pasajeros] = await Promise.all([
+      userService.listarUsers(),
+      pasajerosService.listarPasajeros()
+    ]);
+
+    res.status(200).json({
+      empleados,
+      pasajeros
+    });
   } catch (error) {
     next(error);
   }
 };
+

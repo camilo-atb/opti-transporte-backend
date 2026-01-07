@@ -74,8 +74,26 @@ class PasajerosService {
     return result.recordset[0];
   }
 
+  async cambiarEstado(idAuthSupabase, estado) {
+    const pool = await getConnection();
+
+    const result = await pool.request()
+      .input("id_auth_supabase", sql.NVarChar, idAuthSupabase)
+      .input("estado", sql.NVarChar, estado)
+      .query(`
+        UPDATE ${this.tabla}
+        SET estado = @estado,
+            fecha_modificacion = SYSDATETIME()
+        OUTPUT INSERTED.*
+        WHERE id_auth_supabase = @id_auth_supabase
+      `);
+
+    return result.recordset[0];
+  }
+
+
   // Eliminar pasajero
-  async eliminarPasajero(idAuthSupabase) {
+  /*async eliminarPasajero(idAuthSupabase) {
     const pool = await getConnection();
 
     await pool.request()
@@ -86,7 +104,7 @@ class PasajerosService {
       `);
 
     return true;
-  }
+  }*/
 
   // Obtener solo el rol
   async mostrarRolPorId(idAuthSupabase) {

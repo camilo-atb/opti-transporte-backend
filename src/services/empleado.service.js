@@ -96,8 +96,25 @@ class UserService {
     return result.recordset[0];
   }
 
+  async cambiarEstado(idAuthSupabase, estado) {
+    const pool = await getConnection();
+
+    const result = await pool.request()
+      .input("id_auth_supabase", sql.NVarChar, idAuthSupabase)
+      .input("estado", sql.NVarChar, estado)
+      .query(`
+        UPDATE ${this.tabla}
+        SET estado = @estado,
+            fecha_modificacion = SYSDATETIME()
+        OUTPUT INSERTED.*
+        WHERE id_auth_supabase = @id_auth_supabase
+      `);
+
+    return result.recordset[0];
+  }
+
   // Eliminar usuario
-  async eliminarUser(idAuthSupabase) {
+  /*async eliminarUser(idAuthSupabase) {
     const pool = await getConnection();
 
     const result = await pool.request()
@@ -109,7 +126,7 @@ class UserService {
       `);
 
     return result.recordset[0];
-  }
+  }*/
 
   // Listar todos los usuarios
   async listarUsers() {

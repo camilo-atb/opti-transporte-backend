@@ -72,7 +72,16 @@ export const updatePasajero = async (req, res, next) => {
 };
 
 // Eliminar cuenta
-export const deletePasajero = async (req, res, next) => {
+export const desactivarMiCuenta = async (req, res, next) => {
+  try {
+    const result = await pasajerosService.cambiarEstado(req.user.id, "inactivo");
+    res.json({ mensaje: "Cuenta desactivada", usuario: result });
+  } catch (e) {
+    next(e);
+  }
+};
+
+/*export const deletePasajero = async (req, res, next) => {
   try {
     const idAuthSupabase = req.params.id_auth_supabase || req.user.id;
 
@@ -88,10 +97,10 @@ export const deletePasajero = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-};
+};*/
 
 // Cambiar contraseña
-export const cambiarPasswordPasajero = async (req, res, next) => {
+/*export const cambiarPasswordPasajero = async (req, res, next) => {
   try {
     const { nuevaPassword } = req.body;
     if (!nuevaPassword || nuevaPassword.length < 6)
@@ -104,4 +113,4 @@ export const cambiarPasswordPasajero = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-};
+};*/
