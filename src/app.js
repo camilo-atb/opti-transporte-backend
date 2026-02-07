@@ -13,7 +13,21 @@ import { closeConnection } from "./config/db.js";
 
 const app = express();
 app.disable("x-powered-by");
-const PORT = process.env.PORT || 3000;
+
+const PORT = process.env.PORT;
+
+if (!PORT) {
+  console.error("❌ PORT no definido. Azure no inyectó el puerto.");
+}
+
+app.listen(PORT, () => {
+  console.log("🚀 Server running on port", PORT);
+});
+
+app.use((req, res, next) => {
+  console.log("➡️", req.method, req.url);
+  next();
+});
 
 // Middlewares globales
 app.use(cors());
