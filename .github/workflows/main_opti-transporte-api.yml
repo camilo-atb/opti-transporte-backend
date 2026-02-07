@@ -56,9 +56,10 @@ jobs:
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'opti-transporte-api-v2'
+          app-name: 'opti-transporte-api'
           slot-name: 'Production'
           package: .
 
           
+
 
