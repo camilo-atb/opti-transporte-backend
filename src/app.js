@@ -14,25 +14,24 @@ import { closeConnection } from "./config/db.js";
 const app = express();
 app.disable("x-powered-by");
 
-const PORT = process.env.PORT;
+// 🔑 PUERTO CORRECTO
+const PORT = process.env.PORT || 3000;
 
-if (!PORT) {
-  console.error("❌ PORT no definido. Azure no inyectó el puerto.");
-}
-
-app.listen(PORT, () => {
-  console.log("🚀 Server running on port", PORT);
-});
-
-app.use((req, res, next) => {
-  console.log("➡️", req.method, req.url);
-  next();
-});
+// Log de arranque (CLAVE para Azure)
+console.log("🚀 Iniciando backend...");
+console.log("🌍 NODE_ENV:", process.env.NODE_ENV);
+console.log("🔌 Puerto:", PORT);
 
 // Middlewares globales
 app.use(cors());
 app.use(helmet());
 app.use(bodyParser.json());
+
+// Logger simple
+app.use((req, res, next) => {
+  console.log("➡️", req.method, req.url);
+  next();
+});
 
 // Ruta raíz (health check)
 app.get("/", (req, res) => {
@@ -49,13 +48,14 @@ rutas(app);
 // Middleware de errores
 app.use(errorHandler);
 
-// Shutdown
+// Shutdown limpio
 process.on("SIGTERM", async () => {
   console.log("🛑 SIGTERM recibido. Cerrando conexiones...");
   await closeConnection();
   process.exit(0);
 });
 
+// 🚨 UN SOLO listen, SIEMPRE AL FINAL
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`✅ Server running on port ${PORT}`);
 });
