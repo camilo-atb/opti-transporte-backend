@@ -11,21 +11,9 @@ const crearLogoBySuper = async (req, res, next) => {
       return res.status(404).json({ error: "Usuario no encontrado." });
     }
 
-    const {
-      imagen_url,
-      empresa_url,
-      alt_text,
-      title,
-      imagekit_file_id
-    } = req.body;
+    const { imagen_url, empresa_url, alt_text, title, imagekit_file_id } = req.body;
 
-    const newLogo = await Logos.create(
-      imagen_url,
-      empresa_url,
-      alt_text,
-      title,
-      imagekit_file_id
-    );
+    const newLogo = await Logos.create(imagen_url, empresa_url, alt_text, title, imagekit_file_id);
 
     res.status(201).json(newLogo);
   } catch (error) {
@@ -117,12 +105,11 @@ const activarLogoBySuper = async (req, res, next) => {
   }
 };
 
-
 export default {
   crearLogoBySuper,
   getLogos,
   getLogoById,
   updateLogoBySuper,
   deleteLogoBySuper,
-  activarLogoBySuper
+  activarLogoBySuper,
 };

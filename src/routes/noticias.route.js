@@ -14,10 +14,25 @@ router.get("/", noticiasController.obtenerNoticiasPaginadas);
 // Noticia completa
 router.get("/:id", noticiasController.obtenerNoticiaPorId);
 
-router.post("/", authenticate, authorize(["super-usuario"]), noticiasController.createNoticiaBySuper);
+router.post(
+  "/",
+  authenticate,
+  authorize(["super-usuario"]),
+  noticiasController.createNoticiaBySuper
+);
 
-router.patch("/:id", authenticate, authorize(["super-usuario"]), noticiasController.modificarNoticia);
+router.patch(
+  "/:id",
+  authenticate,
+  authorize(["super-usuario"]),
+  noticiasController.modificarNoticia
+);
 
-router.delete("/:id", authenticate, authorize(["super-usuario"]), noticiasController.eliminarNoticias);
+router.delete(
+  "/:id",
+  authenticate,
+  authorize(["super-usuario"]),
+  noticiasController.eliminarNoticias
+);
 
 export default router;

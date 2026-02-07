@@ -21,7 +21,12 @@ router.get("/rol/:id_auth_supabase", authenticate, getUserXIdsupabase);
 router.post("/", authenticate, authorize(["super-usuario"]), createUserByAdmin);
 
 // Desactivar cuenta (empleado o pasajero)
-router.patch("/desactivar/:tipo/:id_auth_supabase", authenticate, authorize(["super-usuario"]), desactivarCuenta);
+router.patch(
+  "/desactivar/:tipo/:id_auth_supabase",
+  authenticate,
+  authorize(["super-usuario"]),
+  desactivarCuenta
+);
 
 // Editar perfil empleado
 router.patch("/:id_auth_supabase", authenticate, updateUser);

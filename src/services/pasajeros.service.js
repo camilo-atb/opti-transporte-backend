@@ -10,12 +10,12 @@ class PasajerosService {
   async crearPasajero(id_auth_supabase, nombre, apellido, telefono) {
     const pool = await getConnection();
 
-    const result = await pool.request()
+    const result = await pool
+      .request()
       .input("idAuth", sql.NVarChar, id_auth_supabase)
       .input("nombre", sql.NVarChar, nombre)
       .input("apellido", sql.NVarChar, apellido)
-      .input("telefono", sql.NVarChar, telefono)
-      .query(`
+      .input("telefono", sql.NVarChar, telefono).query(`
         INSERT INTO ${this.tabla}
           (id_auth_supabase, nombre, apellido, telefono, rol)
         OUTPUT INSERTED.*
@@ -29,9 +29,7 @@ class PasajerosService {
   async mostrarPasajeroPorIdSupabase(idAuthSupabase) {
     const pool = await getConnection();
 
-    const result = await pool.request()
-      .input("idAuth", sql.NVarChar, idAuthSupabase)
-      .query(`
+    const result = await pool.request().input("idAuth", sql.NVarChar, idAuthSupabase).query(`
         SELECT * FROM ${this.tabla}
         WHERE id_auth_supabase = @idAuth
       `);
@@ -55,12 +53,12 @@ class PasajerosService {
   async actualizarPasajero(idAuthSupabase, { nombre, apellido, telefono }) {
     const pool = await getConnection();
 
-    const result = await pool.request()
+    const result = await pool
+      .request()
       .input("nombre", sql.NVarChar, nombre ?? null)
       .input("apellido", sql.NVarChar, apellido ?? null)
       .input("telefono", sql.NVarChar, telefono ?? null)
-      .input("idAuth", sql.NVarChar, idAuthSupabase)
-      .query(`
+      .input("idAuth", sql.NVarChar, idAuthSupabase).query(`
         UPDATE ${this.tabla}
         SET
           nombre = COALESCE(@nombre, nombre),
@@ -77,10 +75,10 @@ class PasajerosService {
   async cambiarEstado(idAuthSupabase, estado) {
     const pool = await getConnection();
 
-    const result = await pool.request()
+    const result = await pool
+      .request()
       .input("id_auth_supabase", sql.NVarChar, idAuthSupabase)
-      .input("estado", sql.NVarChar, estado)
-      .query(`
+      .input("estado", sql.NVarChar, estado).query(`
         UPDATE ${this.tabla}
         SET estado = @estado,
             fecha_modificacion = SYSDATETIME()
@@ -90,7 +88,6 @@ class PasajerosService {
 
     return result.recordset[0];
   }
-
 
   // Eliminar pasajero
   /*async eliminarPasajero(idAuthSupabase) {
@@ -110,9 +107,7 @@ class PasajerosService {
   async mostrarRolPorId(idAuthSupabase) {
     const pool = await getConnection();
 
-    const result = await pool.request()
-      .input("idAuth", sql.NVarChar, idAuthSupabase)
-      .query(`
+    const result = await pool.request().input("idAuth", sql.NVarChar, idAuthSupabase).query(`
         SELECT rol FROM ${this.tabla}
         WHERE id_auth_supabase = @idAuth
       `);

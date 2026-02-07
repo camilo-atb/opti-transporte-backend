@@ -23,7 +23,7 @@ const rutas = (app) => {
   router.use("/logos", logosRoutes);
   router.use("/destinos", destinosRoutes);
   router.use("/empleados", empleadosRoute);
-  router.use("/imagekit", imagekitRoutes)
+  router.use("/imagekit", imagekitRoutes);
 
   app.use("/api", router);
 };

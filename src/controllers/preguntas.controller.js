@@ -76,5 +76,5 @@ export default {
   createQuestion,
   editQuestion,
   eliminarPregunta,
-  getQuestions
+  getQuestions,
 };

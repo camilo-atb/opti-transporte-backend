@@ -8,7 +8,7 @@ export const getUserXIdsupabase = async (req, res, next) => {
   try {
     const { id_auth_supabase } = req.params;
     let rol = await userService.mostrarRolPorId(id_auth_supabase);
-    
+
     if (!rol) {
       rol = await pasajerosService.mostrarRolPorId(id_auth_supabase);
     }
@@ -48,13 +48,12 @@ export const createUserByAdmin = async (req, res, next) => {
 
     res.status(201).json({
       mensaje: "Usuario creado correctamente",
-      user: newUser
+      user: newUser,
     });
   } catch (error) {
     next(error);
   }
 };
-
 
 // Actualizar usuario
 export const updateUser = async (req, res, next) => {
@@ -64,7 +63,7 @@ export const updateUser = async (req, res, next) => {
 
     if (requester.rol !== "super-usuario" && requester.id !== id_auth_supabase) {
       return res.status(403).json({
-        error: "No tienes permiso para editar este usuario"
+        error: "No tienes permiso para editar este usuario",
       });
     }
 
@@ -75,14 +74,12 @@ export const updateUser = async (req, res, next) => {
 
     res.status(200).json({
       mensaje: "Usuario actualizado correctamente",
-      usuario: updated
+      usuario: updated,
     });
   } catch (error) {
     next(error);
   }
 };
-
-
 
 export const desactivarCuenta = async (req, res, next) => {
   try {
@@ -104,7 +101,6 @@ export const desactivarCuenta = async (req, res, next) => {
     next(error);
   }
 };
-
 
 // Eliminar usuario
 /*export const deleteUser = async (req, res, next) => {
@@ -150,15 +146,14 @@ export const listarUsuarios = async (req, res, next) => {
 
     const [empleados, pasajeros] = await Promise.all([
       userService.listarUsers(),
-      pasajerosService.listarPasajeros()
+      pasajerosService.listarPasajeros(),
     ]);
 
     res.status(200).json({
       empleados,
-      pasajeros
+      pasajeros,
     });
   } catch (error) {
     next(error);
   }
 };
-

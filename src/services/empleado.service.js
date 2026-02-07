@@ -10,14 +10,14 @@ class UserService {
   async crearUser(id_auth_supabase, nombre, apellido, telefono, rol, ruta_imagen = null) {
     const pool = await getConnection();
 
-    const result = await pool.request()
+    const result = await pool
+      .request()
       .input("id_auth_supabase", sql.NVarChar, id_auth_supabase)
       .input("nombre", sql.NVarChar, nombre)
       .input("apellido", sql.NVarChar, apellido)
       .input("telefono", sql.NVarChar, telefono)
       .input("rol", sql.NVarChar, rol)
-      .input("ruta_imagen", sql.NVarChar, ruta_imagen)
-      .query(`
+      .input("ruta_imagen", sql.NVarChar, ruta_imagen).query(`
         INSERT INTO ${this.tabla}
           (id_auth_supabase, nombre, apellido, telefono, rol, ruta_imagen)
         OUTPUT INSERTED.*
@@ -32,8 +32,7 @@ class UserService {
   async mostrarUserPorIdSupabase(idAuthSupabase) {
     const pool = await getConnection();
 
-    const result = await pool.request()
-      .input("id_auth_supabase", sql.NVarChar, idAuthSupabase)
+    const result = await pool.request().input("id_auth_supabase", sql.NVarChar, idAuthSupabase)
       .query(`
         SELECT * FROM ${this.tabla}
         WHERE id_auth_supabase = @id_auth_supabase
@@ -46,9 +45,7 @@ class UserService {
   async mostrarUserPorId(id) {
     const pool = await getConnection();
 
-    const result = await pool.request()
-      .input("id", sql.Int, id)
-      .query(`
+    const result = await pool.request().input("id", sql.Int, id).query(`
         SELECT * FROM ${this.tabla}
         WHERE id = @id
       `);
@@ -60,8 +57,7 @@ class UserService {
   async mostrarRolPorId(idAuthSupabase) {
     const pool = await getConnection();
 
-    const result = await pool.request()
-      .input("id_auth_supabase", sql.NVarChar, idAuthSupabase)
+    const result = await pool.request().input("id_auth_supabase", sql.NVarChar, idAuthSupabase)
       .query(`
         SELECT rol FROM ${this.tabla}
         WHERE id_auth_supabase = @id_auth_supabase
@@ -75,13 +71,13 @@ class UserService {
     const { nombre, apellido, telefono, ruta_imagen } = campos;
     const pool = await getConnection();
 
-    const result = await pool.request()
+    const result = await pool
+      .request()
       .input("id_auth_supabase", sql.NVarChar, idAuthSupabase)
       .input("nombre", sql.NVarChar, nombre ?? null)
       .input("apellido", sql.NVarChar, apellido ?? null)
       .input("telefono", sql.NVarChar, telefono ?? null)
-      .input("ruta_imagen", sql.NVarChar, ruta_imagen ?? null)
-      .query(`
+      .input("ruta_imagen", sql.NVarChar, ruta_imagen ?? null).query(`
         UPDATE ${this.tabla}
         SET
           nombre = COALESCE(@nombre, nombre),
@@ -99,10 +95,10 @@ class UserService {
   async cambiarEstado(idAuthSupabase, estado) {
     const pool = await getConnection();
 
-    const result = await pool.request()
+    const result = await pool
+      .request()
       .input("id_auth_supabase", sql.NVarChar, idAuthSupabase)
-      .input("estado", sql.NVarChar, estado)
-      .query(`
+      .input("estado", sql.NVarChar, estado).query(`
         UPDATE ${this.tabla}
         SET estado = @estado,
             fecha_modificacion = SYSDATETIME()

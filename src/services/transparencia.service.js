@@ -11,9 +11,7 @@ class TransparenciaService {
     const pool = await getConnection();
 
     // Validar slug único
-    const slugCheck = await pool.request()
-      .input("slug", sql.NVarChar, slug)
-      .query(`
+    const slugCheck = await pool.request().input("slug", sql.NVarChar, slug).query(`
         SELECT id FROM ${this.table}
         WHERE slug = @slug
       `);
@@ -22,12 +20,12 @@ class TransparenciaService {
       throw new Error(`El slug "${slug}" ya está en uso.`);
     }
 
-    const result = await pool.request()
+    const result = await pool
+      .request()
       .input("titulo", sql.NVarChar, titulo)
       .input("slug", sql.NVarChar, slug)
       .input("parentId", sql.Int, parentId)
-      .input("orden", sql.Int, orden)
-      .query(`
+      .input("orden", sql.Int, orden).query(`
         INSERT INTO ${this.table}
           (titulo, slug, parent_id, orden)
         OUTPUT INSERTED.*
@@ -55,12 +53,12 @@ class TransparenciaService {
   async update(id, titulo, slug, orden) {
     const pool = await getConnection();
 
-    const result = await pool.request()
+    const result = await pool
+      .request()
       .input("id", sql.Int, id)
       .input("titulo", sql.NVarChar, titulo)
       .input("slug", sql.NVarChar, slug)
-      .input("orden", sql.Int, orden)
-      .query(`
+      .input("orden", sql.Int, orden).query(`
         UPDATE ${this.table}
         SET
           titulo = @titulo,
@@ -82,9 +80,7 @@ class TransparenciaService {
   async softDelete(id) {
     const pool = await getConnection();
 
-    const result = await pool.request()
-      .input("id", sql.Int, id)
-      .query(`
+    const result = await pool.request().input("id", sql.Int, id).query(`
         UPDATE ${this.table}
         SET
           activo = 0,

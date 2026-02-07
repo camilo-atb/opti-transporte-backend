@@ -11,7 +11,6 @@ const authenticate = async (req, res, next) => {
   console.log("HEADER:", req.headers["x-api-key"]);
   console.log("URL:", req.originalUrl);
 
-
   // Ver el token extraído
   //console.log("TOKEN:", token);
 
@@ -26,7 +25,7 @@ const authenticate = async (req, res, next) => {
     data: { user },
     error,
   } = await supabase.auth.getUser(token);
-  
+
   // Ver respuesta de Supabase
   console.log("SUPABASE ERROR:", error);
   console.log("SUPABASE USER:", user);
@@ -58,7 +57,6 @@ const authenticate = async (req, res, next) => {
   };
 
   next();
-  
 };
 
 export default authenticate;

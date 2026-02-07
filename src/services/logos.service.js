@@ -10,13 +10,13 @@ class LogosService {
   async create(imagen_url, empresa_url, alt_text, title, imagekit_file_id) {
     const pool = await getConnection();
 
-    const result = await pool.request()
+    const result = await pool
+      .request()
       .input("imagen_url", sql.NVarChar, imagen_url)
       .input("empresa_url", sql.NVarChar, empresa_url)
       .input("alt_text", sql.NVarChar, alt_text)
       .input("title", sql.NVarChar, title)
-      .input("imagekit_file_id", sql.NVarChar, imagekit_file_id)
-      .query(`
+      .input("imagekit_file_id", sql.NVarChar, imagekit_file_id).query(`
         INSERT INTO ${this.table}
           (imagen_url, empresa_url, alt_text, title, imagekit_file_id)
         OUTPUT INSERTED.*
@@ -50,9 +50,7 @@ class LogosService {
   async getById(id) {
     const pool = await getConnection();
 
-    const result = await pool.request()
-      .input("id", sql.Int, id)
-      .query(`
+    const result = await pool.request().input("id", sql.Int, id).query(`
         SELECT *
         FROM ${this.table}
         WHERE id = @id
@@ -72,9 +70,7 @@ class LogosService {
     }
 
     // Construcción dinámica segura
-    const setQuery = columnas
-      .map((col, index) => `${col} = @valor${index}`)
-      .join(", ");
+    const setQuery = columnas.map((col, index) => `${col} = @valor${index}`).join(", ");
 
     const request = pool.request();
 
@@ -99,9 +95,7 @@ class LogosService {
   async softDelete(id) {
     const pool = await getConnection();
 
-    const result = await pool.request()
-      .input("id", sql.Int, id)
-      .query(`
+    const result = await pool.request().input("id", sql.Int, id).query(`
         UPDATE ${this.table}
         SET activo = 0,
             fecha_modificacion = SYSDATETIME()
@@ -116,9 +110,7 @@ class LogosService {
   async activate(id) {
     const pool = await getConnection();
 
-    const result = await pool.request()
-      .input("id", sql.Int, id)
-      .query(`
+    const result = await pool.request().input("id", sql.Int, id).query(`
         UPDATE ${this.table}
         SET activo = 1,
             fecha_modificacion = SYSDATETIME()
@@ -129,15 +121,12 @@ class LogosService {
     return result.recordset[0];
   }
 
-
   // Eliminación completa
   async delete(idLogo) {
     const pool = await getConnection();
 
     // 1. Obtener imagekit_file_id
-    const logoResult = await pool.request()
-      .input("id", sql.Int, idLogo)
-      .query(`
+    const logoResult = await pool.request().input("id", sql.Int, idLogo).query(`
         SELECT imagekit_file_id
         FROM ${this.table}
         WHERE id = @id
@@ -159,16 +148,13 @@ class LogosService {
     }
 
     // 3. Eliminar registro
-    await pool.request()
-      .input("id", sql.Int, idLogo)
-      .query(`
+    await pool.request().input("id", sql.Int, idLogo).query(`
         DELETE FROM ${this.table}
         WHERE id = @id
       `);
 
     return { mensaje: "Logo eliminado correctamente" };
   }
-
 }
 
 const Logos = new LogosService();

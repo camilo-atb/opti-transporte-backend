@@ -17,12 +17,12 @@ class OpinionesService {
 
     const pool = await getConnection();
 
-    const result = await pool.request()
+    const result = await pool
+      .request()
       .input("userId", sql.Int, userId)
       .input("puntuacion", sql.SmallInt, puntuacion)
       .input("titulo", sql.NVarChar, tituloOpinion || null)
-      .input("opinion", sql.NVarChar, opinion)
-      .query(`
+      .input("opinion", sql.NVarChar, opinion).query(`
         INSERT INTO ${this.tableOpiniones}
           (user_id, puntuacion, titulo_opinion, opinion)
         OUTPUT INSERTED.*
@@ -61,9 +61,7 @@ class OpinionesService {
   async getOpinionById(id) {
     const pool = await getConnection();
 
-    const result = await pool.request()
-      .input("id", sql.Int, id)
-      .query(`
+    const result = await pool.request().input("id", sql.Int, id).query(`
         SELECT 
           o.*,
           u.nombre,
@@ -83,13 +81,13 @@ class OpinionesService {
 
     const pool = await getConnection();
 
-    const result = await pool.request()
+    const result = await pool
+      .request()
       .input("puntuacion", sql.SmallInt, puntuacion ?? null)
       .input("titulo", sql.NVarChar, tituloOpinion ?? null)
       .input("opinion", sql.NVarChar, opinion ?? null)
       .input("aprobado", sql.Bit, aprobado ?? null)
-      .input("id", sql.Int, idOpinion)
-      .query(`
+      .input("id", sql.Int, idOpinion).query(`
         UPDATE ${this.tableOpiniones}
         SET 
           puntuacion = COALESCE(@puntuacion, puntuacion),
@@ -112,9 +110,7 @@ class OpinionesService {
   async deleteOpinion(idOpinion) {
     const pool = await getConnection();
 
-    const result = await pool.request()
-      .input("id", sql.Int, idOpinion)
-      .query(`
+    const result = await pool.request().input("id", sql.Int, idOpinion).query(`
         DELETE FROM ${this.tableOpiniones}
         OUTPUT DELETED.*
         WHERE id = @id

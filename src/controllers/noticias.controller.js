@@ -19,7 +19,7 @@ const createNoticiaBySuper = async (req, res, next) => {
       ruta_imagen,
       imagekit_file_id,
       autor,
-      categoria
+      categoria,
     } = req.body;
 
     const newNotice = await noticiasService.crearNoticia(

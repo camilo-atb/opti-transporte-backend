@@ -10,10 +10,10 @@ class PreguntasFrecuentesService {
   async create(pregunta, respuesta) {
     const pool = await getConnection();
 
-    const result = await pool.request()
+    const result = await pool
+      .request()
       .input("pregunta", sql.NVarChar, pregunta)
-      .input("respuesta", sql.NVarChar, respuesta)
-      .query(`
+      .input("respuesta", sql.NVarChar, respuesta).query(`
         INSERT INTO ${this.table} (pregunta, respuesta)
         OUTPUT INSERTED.*
         VALUES (@pregunta, @respuesta)
@@ -27,7 +27,8 @@ class PreguntasFrecuentesService {
     const pool = await getConnection();
 
     // Verificar existencia
-    const existe = await pool.request()
+    const existe = await pool
+      .request()
       .input("id", sql.Int, id)
       .query(`SELECT * FROM ${this.table} WHERE id = @id`);
 
@@ -37,16 +38,13 @@ class PreguntasFrecuentesService {
 
     const actual = existe.recordset[0];
 
-    const {
-      pregunta = actual.pregunta,
-      respuesta = actual.respuesta,
-    } = datos;
+    const { pregunta = actual.pregunta, respuesta = actual.respuesta } = datos;
 
-    const result = await pool.request()
+    const result = await pool
+      .request()
       .input("id", sql.Int, id)
       .input("pregunta", sql.NVarChar, pregunta)
-      .input("respuesta", sql.NVarChar, respuesta)
-      .query(`
+      .input("respuesta", sql.NVarChar, respuesta).query(`
         UPDATE ${this.table}
         SET
           pregunta = @pregunta,
@@ -63,9 +61,7 @@ class PreguntasFrecuentesService {
   async delete(id) {
     const pool = await getConnection();
 
-    const result = await pool.request()
-      .input("id", sql.Int, id)
-      .query(`
+    const result = await pool.request().input("id", sql.Int, id).query(`
         DELETE FROM ${this.table}
         OUTPUT DELETED.*
         WHERE id = @id
@@ -83,10 +79,10 @@ class PreguntasFrecuentesService {
     const pool = await getConnection();
     const offset = (page - 1) * limit;
 
-    const dataResult = await pool.request()
+    const dataResult = await pool
+      .request()
       .input("limit", sql.Int, limit)
-      .input("offset", sql.Int, offset)
-      .query(`
+      .input("offset", sql.Int, offset).query(`
         SELECT *
         FROM ${this.table}
         ORDER BY fecha_publicacion DESC

@@ -25,7 +25,7 @@ app.get("/", (req, res) => {
   res.status(200).json({
     status: "ok",
     service: "Opti Transporte API",
-    environment: process.env.NODE_ENV || "development"
+    environment: process.env.NODE_ENV || "development",
   });
 });
 
