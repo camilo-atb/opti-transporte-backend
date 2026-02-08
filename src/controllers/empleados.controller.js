@@ -70,10 +70,16 @@ export const updateUser = async (req, res, next) => {
     const { id_auth_supabase } = req.params;
     const requester = req.user;
 
+    // 🚩 LOG DE DIAGNÓSTICO
+    console.log("DEBUG - Requester:", requester);
+    console.log("DEBUG - Body recibido:", req.body);
+
+    if (!requester) {
+      return res.status(401).json({ error: "No se pudo identificar al usuario que realiza la petición" });
+    }
+
     if (requester.rol !== "super-usuario" && requester.id !== id_auth_supabase) {
-      return res.status(403).json({
-        error: "No tienes permiso para editar este usuario",
-      });
+      return res.status(403).json({ error: "No tienes permiso" });
     }
 
     const updated = await userService.actualizarUser(id_auth_supabase, req.body);
