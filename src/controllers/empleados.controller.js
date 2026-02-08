@@ -25,6 +25,7 @@ export const getUserXIdsupabase = async (req, res, next) => {
 
 // Crear usuario
 export const createUserByAdmin = async (req, res, next) => {
+  console.log("BODY RECIBIDO:", req.body);
   try {
     const requester = await userService.mostrarUserPorIdSupabase(req.user.id);
 
