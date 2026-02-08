@@ -19,12 +19,15 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up Node.js version
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v3
         with:
           node-version: '20.x'
 
-      - name: Install dependencies
-        run: npm install
+      - name: npm install, build, and test
+        run: |
+          npm install
+          npm run build --if-present
+          npm run test --if-present
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -48,9 +51,9 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_8F30879F12D242FDA89B860E91C6280D }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_196D88C610BA477F918DDD890A9BAA7B }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_C9348AFED29944D5B9D7AE8C22D97961 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_1A4D7C9EA0714F76BC316BB83FB8E51E }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_6265660BEFF944839E1FC2EE70C73DA9 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_56DAC64EDD7F46F58EE7CC803BFC71AC }}
 
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
@@ -59,5 +62,4 @@ jobs:
           app-name: 'opti-transporte-api'
           slot-name: 'Production'
           package: .
-
           
