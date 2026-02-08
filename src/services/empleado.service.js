@@ -68,28 +68,35 @@ class UserService {
 
   // Actualizar usuario
   async actualizarUser(idAuthSupabase, campos) {
-    const { nombre, apellido, telefono, ruta_imagen } = campos;
-    const pool = await getConnection();
+    try {
+      const pool = await getConnection();
+      const request = pool.request();
 
-    const result = await pool
-      .request()
-      .input("id_auth_supabase", sql.NVarChar, idAuthSupabase)
-      .input("nombre", sql.NVarChar, nombre ?? null)
-      .input("apellido", sql.NVarChar, apellido ?? null)
-      .input("telefono", sql.NVarChar, telefono ?? null)
-      .input("ruta_imagen", sql.NVarChar, ruta_imagen ?? null).query(`
+      request.input("id_auth_supabase", sql.NVarChar, idAuthSupabase);
+
+      request.input("nombre", sql.NVarChar, campos.nombre !== undefined ? campos.nombre : null);
+      request.input("apellido", sql.NVarChar, campos.apellido !== undefined ? campos.apellido : null);
+      request.input("telefono", sql.NVarChar, campos.telefono !== undefined ? campos.telefono : null);
+      request.input("ruta_imagen", sql.NVarChar, campos.ruta_imagen !== undefined ? campos.ruta_imagen : null);
+
+      const query = `
         UPDATE ${this.tabla}
         SET
-          nombre = COALESCE(@nombre, nombre),
-          apellido = COALESCE(@apellido, apellido),
-          telefono = COALESCE(@telefono, telefono),
-          ruta_imagen = COALESCE(@ruta_imagen, ruta_imagen),
+          nombre = ISNULL(@nombre, nombre),
+          apellido = ISNULL(@apellido, apellido),
+          telefono = ISNULL(@telefono, telefono),
+          ruta_imagen = ISNULL(@ruta_imagen, ruta_imagen),
           fecha_modificacion = SYSDATETIME()
         OUTPUT INSERTED.*
         WHERE id_auth_supabase = @id_auth_supabase
-      `);
+      `;
 
-    return result.recordset[0];
+      const result = await request.query(query);
+      return result.recordset[0];
+    } catch (error) {
+      console.error("Error en SQL Service:", error);
+      throw error; // Esto permitirá que el controller lo atrape en el catch(error)
+    }
   }
 
   async cambiarEstado(idAuthSupabase, estado) {
