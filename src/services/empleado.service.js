@@ -132,7 +132,7 @@ class UserService {
   }*/
 
   // Listar todos los usuarios
-  async listarUsers() {
+  /*async listarUsers() {
     const pool = await getConnection();
 
     const result = await pool.request().query(`
@@ -140,6 +140,24 @@ class UserService {
       ORDER BY id ASC
     `);
 
+    return result.recordset;
+  }*/
+
+  // Listar usuarios por estado
+  async listarUsers(estado = null) {
+    const pool = await getConnection();
+    const request = pool.request();
+
+    let query = `SELECT * FROM ${this.tabla}`;
+
+    if (estado) {
+      request.input("estado", sql.NVarChar, estado);
+      query += ` WHERE estado = @estado`;
+    }
+
+    query += ` ORDER BY id ASC`;
+
+    const result = await request.query(query);
     return result.recordset;
   }
 }

@@ -157,7 +157,7 @@ export const desactivarCuenta = async (req, res, next) => {
 };*/
 
 // Listar usuarios
-export const listarUsuarios = async (req, res, next) => {
+/*export const listarUsuarios = async (req, res, next) => {
   try {
     if (req.user.rol !== "super-usuario") {
       return res.status(403).json({ error: "No autorizado" });
@@ -171,6 +171,27 @@ export const listarUsuarios = async (req, res, next) => {
     res.status(200).json({
       empleados,
       pasajeros,
+    });
+  } catch (error) {
+    next(error);
+  }
+};*/
+
+//Listar usuarios
+export const listarUsuarios = async (req, res, next) => {
+  try {
+    if (req.user.rol !== "super-usuario") {
+      return res.status(403).json({ error: "No autorizado" });
+    }
+
+    const [empleadosActivos, empleadosInactivos] = await Promise.all([
+      userService.listarUsers("activo"),
+      userService.listarUsers("inactivo"),
+    ]);
+
+    res.status(200).json({
+      empleadosActivos,
+      empleadosInactivos,
     });
   } catch (error) {
     next(error);
