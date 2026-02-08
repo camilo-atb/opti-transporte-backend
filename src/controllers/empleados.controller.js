@@ -25,18 +25,25 @@ export const getUserXIdsupabase = async (req, res, next) => {
 
 // Crear usuario
 export const createUserByAdmin = async (req, res, next) => {
-  console.log("BODY RECIBIDO:", req.body);
   try {
-    const requester = await userService.mostrarUserPorIdSupabase(req.user.id);
-
-    if (!requester || requester.rol !== "super-usuario") {
-      return res.status(403).json({ error: "No tienes permisos para crear usuarios" });
-    }
+    console.log("BODY RECIBIDO:", req.body);
 
     const { email, password, nombre, apellido, telefono, rol, ruta_imagen } = req.body;
 
+    if (!email || !password || !nombre || !rol) {
+      return res.status(400).json({ error: "Faltan campos obligatorios" });
+    }
+
     const { data, error } = await supabase.auth.signUp({ email, password });
-    if (error) return res.status(400).json({ error: error.message });
+
+    if (error) {
+      console.error("SUPABASE ERROR:", error);
+      return res.status(400).json({ error: error.message });
+    }
+
+    if (!data?.user?.id) {
+      return res.status(500).json({ error: "No se pudo obtener el ID del usuario" });
+    }
 
     const newUser = await userService.crearUser(
       data.user.id,
@@ -47,12 +54,13 @@ export const createUserByAdmin = async (req, res, next) => {
       ruta_imagen
     );
 
-    res.status(201).json({
+    return res.status(201).json({
       mensaje: "Usuario creado correctamente",
       user: newUser,
     });
   } catch (error) {
-    next(error);
+    console.error("ERROR CREATE USER:", error);
+    return res.status(500).json({ error: "Error interno del servidor" });
   }
 };
 
