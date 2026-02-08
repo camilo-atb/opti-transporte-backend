@@ -86,7 +86,11 @@ export const updateUser = async (req, res, next) => {
       usuario: updated,
     });
   } catch (error) {
-    next(error);
+    console.error("DETALLE DEL ERROR 500:", error);
+    res.status(500).json({
+      error: "Error interno",
+      details: error.message,
+    });
   }
 };
 
