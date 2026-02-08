@@ -144,22 +144,27 @@ class UserService {
   }*/
 
   // Listar usuarios por estado
-  async listarUsers(estado = null) {
+  async listarUsersPorEstado() {
     const pool = await getConnection();
-    const request = pool.request();
 
-    let query = `SELECT * FROM ${this.tabla}`;
+    const activos = await pool.request().query(`
+      SELECT * FROM ${this.tabla}
+      WHERE estado = 'activo'
+      ORDER BY id ASC
+    `);
 
-    if (estado) {
-      request.input("estado", sql.NVarChar, estado);
-      query += ` WHERE estado = @estado`;
-    }
+    const inactivos = await pool.request().query(`
+      SELECT * FROM ${this.tabla}
+      WHERE estado = 'inactivo'
+      ORDER BY id ASC
+    `);
 
-    query += ` ORDER BY id ASC`;
-
-    const result = await request.query(query);
-    return result.recordset;
+    return {
+      activos: activos.recordset,
+      inactivos: inactivos.recordset,
+    };
   }
+
 }
 
 export default new UserService();

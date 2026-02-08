@@ -184,14 +184,11 @@ export const listarUsuarios = async (req, res, next) => {
       return res.status(403).json({ error: "No autorizado" });
     }
 
-    const [empleadosActivos, empleadosInactivos] = await Promise.all([
-      userService.listarUsers("activo"),
-      userService.listarUsers("inactivo"),
-    ]);
+    const empleados = await userService.listarUsersPorEstado();
 
     res.status(200).json({
-      empleadosActivos,
-      empleadosInactivos,
+      empleadosActivos: empleados.activos,
+      empleadosInactivos: empleados.inactivos,
     });
   } catch (error) {
     next(error);
