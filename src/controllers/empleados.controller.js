@@ -212,3 +212,27 @@ export const listarUsuarios = async (req, res, next) => {
     next(error);
   }
 };
+
+//--
+
+export const getMiPerfil = async (req, res, next) => {
+  try {
+    const requester = req.user;
+
+    if (!requester) {
+      return res.status(401).json({ error: "No autenticado" });
+    }
+
+    const user = await userService.mostrarUserPorIdSupabase(
+      requester.id
+    );
+
+    if (!user) {
+      return res.status(404).json({ error: "Usuario no encontrado" });
+    }
+
+    res.status(200).json(user);
+  } catch (error) {
+    next(error);
+  }
+};

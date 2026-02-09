@@ -5,6 +5,7 @@ import {
   updateUser,
   listarUsuarios,
   desactivarCuenta,
+  getMiPerfil,
 } from "../controllers/empleados.controller.js";
 import authenticate from "../middleware/authenticate.js";
 import authorize from "../middleware/authorize.js";
@@ -16,6 +17,9 @@ router.get("/", authenticate, authorize(["super-usuario"]), listarUsuarios);
 
 // Obtener rol (empleado o pasajero) // ESTA
 router.get("/rol/:id_auth_supabase", authenticate, getUserXIdsupabase);
+
+router.get("/mi-perfil", authenticate, getMiPerfil);
+
 
 // Crear empleado (solo super)
 router.post("/", authenticate, authorize(["super-usuario"]), createUserByAdmin);
