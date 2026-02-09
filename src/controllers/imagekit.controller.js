@@ -1,4 +1,4 @@
-import imagekit from "../config/imagekit.js";
+import imagekit from "../config/imagekit";
 
 const getAuthParams = (req, res) => {
   try {
@@ -7,7 +7,7 @@ const getAuthParams = (req, res) => {
   } catch (error) {
     console.error("IMAGEKIT AUTH ERROR:", error);
     res.status(500).json({
-      error: "Error generando autenticación de ImageKit",
+      error: "Error obteniendo autenticación de ImageKit",
     });
   }
 };
