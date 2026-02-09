@@ -70,7 +70,7 @@ export const updateUser = async (req, res, next) => {
     const { id_auth_supabase } = req.params;
     const requester = req.user;
 
-    // 🚩 LOG DE DIAGNÓSTICO
+
     console.log("DEBUG - Requester:", requester);
     console.log("DEBUG - Body recibido:", req.body);
 
@@ -103,23 +103,41 @@ export const updateUser = async (req, res, next) => {
 export const desactivarCuenta = async (req, res, next) => {
   try {
     const { id_auth_supabase, tipo } = req.params;
+    const { estado } = req.body; // 👈 ahora dinámico
+
+    if (!estado) {
+      return res.status(400).json({ error: "Estado requerido" });
+    }
 
     let result;
+
     if (tipo === "empleado") {
-      result = await userService.cambiarEstado(id_auth_supabase, "inactivo");
+      result = await userService.cambiarEstado(
+          id_auth_supabase,
+          estado
+      );
     } else if (tipo === "pasajero") {
-      result = await pasajerosService.cambiarEstado(id_auth_supabase, "inactivo");
+        result = await pasajerosService.cambiarEstado(
+          id_auth_supabase,
+          estado
+      );
     } else {
       return res.status(400).json({ error: "Tipo inválido" });
     }
 
-    if (!result) return res.status(404).json({ error: "Usuario no encontrado" });
+    if (!result) {
+      return res.status(404).json({ error: "Usuario no encontrado" });
+    }
 
-    res.status(200).json({ mensaje: "Cuenta desactivada", usuario: result });
+    res.status(200).json({
+      mensaje: `Cuenta ${estado}`,
+      usuario: result,
+    });
   } catch (error) {
     next(error);
   }
 };
+
 
 // Eliminar usuario
 /*export const deleteUser = async (req, res, next) => {
