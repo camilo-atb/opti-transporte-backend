@@ -1,4 +1,4 @@
-import imagekit from "../config/imagekit";
+import imagekit from "../config/imagekit.js";
 
 const getAuthParams = (req, res) => {
   try {
