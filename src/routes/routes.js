@@ -10,6 +10,9 @@ import transparenciaRoutes from "./transparencia.route.js";
 import destinosRoutes from "./destinos.route.js";
 import imagekitRoutes from "./imagekit.route.js";
 import dashboardRoutes from "./dashboard.routes.js";
+import viajesRoutes from "./viajes.routes.js";
+import ventasRoutes from "./ventas.route.js";
+import pasajerosRoutes from "./pasajeros.route.js"; 
 
 const rutas = (app) => {
   const router = express.Router();
@@ -24,8 +27,11 @@ const rutas = (app) => {
   router.use("/logos", logosRoutes);
   router.use("/destinos", destinosRoutes);
   router.use("/empleados", empleadosRoute);
+  router.use("/pasajeros", pasajerosRoutes);
   router.use("/imagekit", imagekitRoutes);
   router.use("/dashboard", dashboardRoutes);
+  router.use("/viajes", viajesRoutes);
+  router.use("/ventas", ventasRoutes);
 
   app.use("/api", router);
 };

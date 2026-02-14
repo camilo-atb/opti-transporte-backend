@@ -6,7 +6,6 @@ class PasajerosService {
     this.tabla = "usuarios_pasajeros";
   }
 
-  // Crear pasajero
   async crearPasajero(id_auth_supabase, nombre, apellido, telefono) {
     const pool = await getConnection();
 
@@ -25,7 +24,6 @@ class PasajerosService {
     return result.recordset[0];
   }
 
-  // Mostrar pasajero por ID de Supabase
   async mostrarPasajeroPorIdSupabase(idAuthSupabase) {
     const pool = await getConnection();
 
@@ -37,7 +35,6 @@ class PasajerosService {
     return result.recordset[0];
   }
 
-  // Mostrar todos los pasajeros
   async listarPasajeros() {
     const pool = await getConnection();
 
@@ -49,7 +46,6 @@ class PasajerosService {
     return result.recordset;
   }
 
-  // Actualizar datos del pasajero
   async actualizarPasajero(idAuthSupabase, { nombre, apellido, telefono }) {
     const pool = await getConnection();
 
@@ -89,21 +85,6 @@ class PasajerosService {
     return result.recordset[0];
   }
 
-  // Eliminar pasajero
-  /*async eliminarPasajero(idAuthSupabase) {
-    const pool = await getConnection();
-
-    await pool.request()
-      .input("idAuth", sql.NVarChar, idAuthSupabase)
-      .query(`
-        DELETE FROM ${this.tabla}
-        WHERE id_auth_supabase = @idAuth
-      `);
-
-    return true;
-  }*/
-
-  // Obtener solo el rol
   async mostrarRolPorId(idAuthSupabase) {
     const pool = await getConnection();
 
@@ -113,6 +94,37 @@ class PasajerosService {
       `);
 
     return result.recordset[0]?.rol;
+  }
+
+  async mostrarPasajeroPorCedula(cedula) {
+    const pool = await getConnection();
+
+    const result = await pool.request()
+      .input("cedula", sql.NVarChar, cedula)
+      .query(`
+        SELECT * FROM usuarios_pasajeros
+        WHERE cedula = @cedula
+      `);
+
+    return result.recordset[0];
+  }
+
+  async crearPasajeroBasico({ cedula, nombre, apellido, telefono }) {
+    const pool = await getConnection();
+
+    const result = await pool.request()
+      .input("cedula", sql.NVarChar, cedula)
+      .input("nombre", sql.NVarChar, nombre)
+      .input("apellido", sql.NVarChar, apellido)
+      .input("telefono", sql.NVarChar, telefono)
+      .query(`
+        INSERT INTO usuarios_pasajeros
+          (cedula, nombre, apellido, telefono, rol)
+        OUTPUT INSERTED.*
+        VALUES (@cedula, @nombre, @apellido, @telefono, 'pasajero')
+      `);
+
+    return result.recordset[0];
   }
 }
 
