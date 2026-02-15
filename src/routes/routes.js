@@ -12,7 +12,8 @@ import imagekitRoutes from "./imagekit.route.js";
 import dashboardRoutes from "./dashboard.routes.js";
 import viajesRoutes from "./viajes.routes.js";
 import ventasRoutes from "./ventas.route.js";
-import pasajerosRoutes from "./pasajeros.route.js"; 
+import pasajerosRoutes from "./pasajeros.route.js";
+import reportesRoutes from "./reportes.routes.js";
 
 const rutas = (app) => {
   const router = express.Router();
@@ -32,6 +33,7 @@ const rutas = (app) => {
   router.use("/dashboard", dashboardRoutes);
   router.use("/viajes", viajesRoutes);
   router.use("/ventas", ventasRoutes);
+  router.use("/reportes", reportesRoutes);
 
   app.use("/api", router);
 };

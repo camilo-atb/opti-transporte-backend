@@ -59,9 +59,11 @@ export const crearVenta = async (req, res, next) => {
       precio_unitario,
     });
 
+    // ✅ RESPUESTA CORREGIDA
     res.status(201).json({
-      message: "Venta realizada con éxito",
-      venta,
+      success: true,
+      ventaId: venta.id, // ← ESTO ES LO CRÍTICO
+      message: "Venta creada exitosamente"
     });
 
   } catch (error) {
@@ -78,6 +80,8 @@ export const obtenerSillasOcupadas = async (req, res, next) => {
     }
 
     const sillasOcupadas = await tiquetesService.obtenerSillasOcupadas(viajeId);
+    console.log("SILLAS RECIBIDAS:", sillasOcupadas);
+
 
     res.status(200).json({
       viaje_id: viajeId,

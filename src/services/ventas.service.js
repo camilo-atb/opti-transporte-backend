@@ -11,10 +11,15 @@ class VentasService {
     const pool = await getConnection();
     const transaction = new sql.Transaction(pool);
 
+    console.log("SILLAS RECIBIDAS:", sillas);
+
+
     try {
       await transaction.begin();
 
       const total = sillas.length * precio_unitario;
+
+      console.log("SILLAS RECIBIDAS:", sillas);
 
       const ventaResult = await transaction
         .request()
@@ -76,31 +81,59 @@ class VentasService {
       .request()
       .input("operario_id", sql.Int, operarioId)
       .query(`
+        WITH ventas_local AS (
+          SELECT
+            total,
+            operario_id,
+            estado,
+
+            -- Convertimos a hora Colombia
+            fecha_venta AT TIME ZONE 'UTC'
+                        AT TIME ZONE 'SA Pacific Standard Time'
+            AS fecha_local
+
+          FROM ventas
+          WHERE operario_id = @operario_id
+        )
+
         SELECT
           SUM(CASE 
-                WHEN CAST(fecha_venta AS DATE) = CAST(GETDATE() AS DATE)
-                THEN total ELSE 0 END) AS ventas_hoy,
+                WHEN CAST(fecha_local AS DATE) =
+                    CAST(SYSDATETIMEOFFSET() 
+                          AT TIME ZONE 'SA Pacific Standard Time' AS DATE)
+                THEN total ELSE 0 
+              END) AS ventas_hoy,
 
           SUM(CASE 
-                WHEN DATEPART(WEEK, fecha_venta) = DATEPART(WEEK, GETDATE())
-                AND YEAR(fecha_venta) = YEAR(GETDATE())
-                THEN total ELSE 0 END) AS ventas_semana,
+                WHEN fecha_local >= DATEADD(WEEK,
+                      DATEDIFF(WEEK, 0,
+                        SYSDATETIMEOFFSET()
+                        AT TIME ZONE 'SA Pacific Standard Time'),
+                      0)
+                THEN total ELSE 0 
+              END) AS ventas_semana,
 
           SUM(CASE 
-                WHEN MONTH(fecha_venta) = MONTH(GETDATE())
-                AND YEAR(fecha_venta) = YEAR(GETDATE())
-                THEN total ELSE 0 END) AS ventas_mes,
+                WHEN fecha_local >= DATEADD(MONTH,
+                      DATEDIFF(MONTH, 0,
+                        SYSDATETIMEOFFSET()
+                        AT TIME ZONE 'SA Pacific Standard Time'),
+                      0)
+                THEN total ELSE 0 
+              END) AS ventas_mes,
 
+          -- Totales
           SUM(total) AS ventas_total,
 
           COUNT(CASE 
-                WHEN CAST(fecha_venta AS DATE) = CAST(GETDATE() AS DATE)
+                WHEN CAST(fecha_local AS DATE) =
+                    CAST(SYSDATETIMEOFFSET()
+                          AT TIME ZONE 'SA Pacific Standard Time' AS DATE)
                 THEN 1 END) AS transacciones_hoy,
 
           COUNT(*) AS transacciones_total
 
-        FROM ventas
-        WHERE operario_id = @operario_id
+        FROM ventas_local;
       `);
 
     return result.recordset[0];
@@ -124,9 +157,10 @@ class VentasService {
 
           vi.origen,
           vi.destino,
-          vi.hora_salida,
+          vi.fecha_salida,
 
-          b.placa,
+          vi.placa_bus,
+          vi.empresa,
 
           t.numero_silla
 
@@ -140,9 +174,6 @@ class VentasService {
 
         JOIN viajes vi 
           ON vi.id = t.viaje_id
-
-        JOIN buses b 
-          ON b.id = vi.bus_id
 
         WHERE v.id = @venta_id
       `);
@@ -167,19 +198,18 @@ class VentasService {
       viaje: {
         origen: data[0].origen,
         destino: data[0].destino,
-        hora_salida: data[0].hora_salida,
+        fecha_salida: data[0].fecha_salida,
+        empresa: data[0].empresa,
       },
 
       bus: {
-        placa: data[0].placa,
+        placa: data[0].placa_bus,
       },
 
       sillas: data.map((r) => r.numero_silla),
     };
-
     return ticket;
   }
-
 
 }
 
