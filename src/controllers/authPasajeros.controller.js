@@ -42,29 +42,61 @@ export const signInPasajero = async (req, res, next) => {
   }
 };
 
-// Obtener perfil
+// Obtener perfil #####
 export const getPerfilPasajero = async (req, res, next) => {
   try {
     const idAuthSupabase = req.user.id; // viene del middleware authenticate
     const pasajero = await pasajerosService.mostrarPasajeroPorIdSupabase(idAuthSupabase);
     if (!pasajero) return res.status(404).json({ error: "No se encontró el pasajero" });
-    res.status(200).json(pasajero);
+
+    const {data: userData, error} = await supabase.auth.admin.getUserById(idAuthSupabase);
+
+    if (error)
+      return res.status(400).json({ error: error.message });
+
+    res.status(200).json({
+      ...pasajero,
+      email: userData.user.email,
+    });
   } catch (error) {
     next(error);
   }
 };
 
-// Actualizar perfil
+// Actualizar perfil ####
 export const updatePasajero = async (req, res, next) => {
   try {
     const idAuthSupabase = req.user.id;
-    const { nombre, apellido, telefono } = req.body;
+    const { nombre, apellido, telefono, email, password } = req.body;
 
     const pasajeroActualizado = await pasajerosService.actualizarPasajero(idAuthSupabase, {
       nombre,
       apellido,
       telefono,
     });
+
+    const updateData = {};
+
+    if (email && email.trim() !== ""){
+      updateData.email = email;
+    }
+
+    if (password && password.trim() !== "") {
+     updateData.password = password;
+    }
+
+   if (Object.keys(updateData).length > 0) {
+      const { error } = await supabase.auth.admin.updateUserById(
+        idAuthSupabase,
+        updateData
+      );
+
+      if (error) {
+        return res.status(400).json({ error: error.message });
+      }
+    }
+
+
     res.status(200).json(pasajeroActualizado);
   } catch (error) {
     next(error);
