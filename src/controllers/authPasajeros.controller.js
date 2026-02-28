@@ -4,7 +4,7 @@ import pasajerosService from "../services/pasajeros.service.js";
 // Crear pasajero
 export const signUpNewEmail = async (req, res, next) => {
   try {
-    const { email, password, nombre, apellido, telefono } = req.body;
+    const { email, password, nombre, apellido, telefono, cedula } = req.body;
 
     const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) return res.status(400).json({ error: error.message });
@@ -13,7 +13,8 @@ export const signUpNewEmail = async (req, res, next) => {
       data.user.id,
       nombre,
       apellido,
-      telefono
+      telefono,
+      cedula
     );
 
     res.status(201).json({ pasajero: newPasajero });

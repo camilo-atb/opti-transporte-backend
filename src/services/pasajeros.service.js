@@ -6,7 +6,7 @@ class PasajerosService {
     this.tabla = "usuarios_pasajeros";
   }
 
-  async crearPasajero(id_auth_supabase, nombre, apellido, telefono) {
+  async crearPasajero(id_auth_supabase, nombre, apellido, telefono, cedula) {
     const pool = await getConnection();
 
     const result = await pool
@@ -14,11 +14,12 @@ class PasajerosService {
       .input("idAuth", sql.NVarChar, id_auth_supabase)
       .input("nombre", sql.NVarChar, nombre)
       .input("apellido", sql.NVarChar, apellido)
-      .input("telefono", sql.NVarChar, telefono).query(`
+      .input("telefono", sql.NVarChar, telefono)
+      .input("cedula", sql.NVarChar, cedula).query(`
         INSERT INTO ${this.tabla}
-          (id_auth_supabase, nombre, apellido, telefono, rol)
+          (id_auth_supabase, nombre, apellido, telefono, cedula, rol, estado)
         OUTPUT INSERTED.*
-        VALUES (@idAuth, @nombre, @apellido, @telefono, 'pasajero')
+        VALUES (@idAuth, @nombre, @apellido, @telefono, @cedula,'pasajero', 'activo')
       `);
 
     return result.recordset[0];
