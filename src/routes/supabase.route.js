@@ -1,10 +1,10 @@
 import express from "express";
-import supabase from "../config/supabase.js";
+import supabaseEmpleados from "../config/supabase.empleados";
 
 const router = express.Router();
 
 router.get("/credentials", (req, res) => {
-  res.json({ supabase });
+  res.json({ supabaseEmpleados });
 });
 
 export default router;
