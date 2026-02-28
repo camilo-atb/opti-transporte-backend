@@ -1,4 +1,4 @@
-import supabaseEmpleados from "../config/supabaseEmpleados.empleados.js";
+import supabaseEmpleados from "../config/supabase.empleados.js";
 import userService from "../services/empleado.service.js";
 import pasajerosService from "../services/pasajeros.service.js";
 
