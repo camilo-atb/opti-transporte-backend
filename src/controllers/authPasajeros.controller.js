@@ -1,4 +1,4 @@
-import supabase from "../config/supabase.js";
+import supabaseEmpleados from "../config/supabase.empleados.js";
 import pasajerosService from "../services/pasajeros.service.js";
 
 // Crear pasajero
@@ -6,7 +6,7 @@ export const signUpNewEmail = async (req, res, next) => {
   try {
     const { email, password, nombre, apellido, telefono, cedula } = req.body;
 
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await supabaseEmpleados.auth.signUp({ email, password });
     if (error) return res.status(400).json({ error: error.message });
 
     const newPasajero = await pasajerosService.crearPasajero(
@@ -28,7 +28,7 @@ export const signInPasajero = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabaseEmpleados.auth.signInWithPassword({
       email,
       password,
     });
@@ -50,7 +50,7 @@ export const getPerfilPasajero = async (req, res, next) => {
     const pasajero = await pasajerosService.mostrarPasajeroPorIdSupabase(idAuthSupabase);
     if (!pasajero) return res.status(404).json({ error: "No se encontró el pasajero" });
 
-    const {data: userData, error} = await supabase.auth.admin.getUserById(idAuthSupabase);
+    const {data: userData, error} = await supabaseEmpleados.auth.admin.getUserById(idAuthSupabase);
 
     if (error)
       return res.status(400).json({ error: error.message });
@@ -87,7 +87,7 @@ export const updatePasajero = async (req, res, next) => {
     }
 
    if (Object.keys(updateData).length > 0) {
-      const { error } = await supabase.auth.admin.updateUserById(
+      const { error } = await supabaseEmpleados.auth.admin.updateUserById(
         idAuthSupabase,
         updateData
       );

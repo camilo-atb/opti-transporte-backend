@@ -1,5 +1,4 @@
-// controllers/usuarios.controller.js
-import supabase from "../config/supabase.js";
+import supabaseEmpleados from "../config/supabase.empleados.js";
 import userService from "../services/empleado.service.js";
 import pasajerosService from "../services/pasajeros.service.js";
 
@@ -34,7 +33,7 @@ export const createUserByAdmin = async (req, res, next) => {
       return res.status(400).json({ error: "Faltan campos obligatorios" });
     }
 
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await supabaseEmpleados.auth.signUp({ email, password });
 
     if (error) {
       console.error("SUPABASE ERROR:", error);
@@ -165,7 +164,7 @@ export const desactivarCuenta = async (req, res, next) => {
       return res.status(400).json({ error: "La contraseña debe tener al menos 6 caracteres" });
     }
 
-    const { error } = await supabase.auth.updateUser({ password: nuevaPassword });
+    const { error } = await supabaseEmpleados.auth.updateUser({ password: nuevaPassword });
     if (error) return res.status(400).json({ error: error.message });
 
     res.status(200).json({ mensaje: "Contraseña actualizada correctamente" });
