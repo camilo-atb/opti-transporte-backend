@@ -33,7 +33,7 @@ export const signInPasajero = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    const { data, error } = await supabaseEmpleados.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -55,7 +55,7 @@ export const getPerfilPasajero = async (req, res, next) => {
     const pasajero = await pasajerosService.mostrarPasajeroPorIdSupabase(idAuthSupabase);
     if (!pasajero) return res.status(404).json({ error: "No se encontró el pasajero" });
 
-    const {data: userData, error} = await supabaseEmpleados.auth.admin.getUserById(idAuthSupabase);
+    const {data: userData, error} = await supabase.auth.admin.getUserById(idAuthSupabase);
 
     if (error)
       return res.status(400).json({ error: error.message });
@@ -92,7 +92,7 @@ export const updatePasajero = async (req, res, next) => {
     }
 
    if (Object.keys(updateData).length > 0) {
-      const { error } = await supabaseEmpleados.auth.admin.updateUserById(
+      const { error } = await supabase.auth.admin.updateUserById(
         idAuthSupabase,
         updateData
       );
