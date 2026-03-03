@@ -9,6 +9,9 @@ import authenticate from "../middleware/authenticate.js";
 
 const router = express.Router();
 
+//PÚBLICO
+router.get("/public", listarViajes);
+
 router.get("/", authenticate, listarViajes);
 router.get("/:id", authenticate, obtenerViajePorId);
 router.post("/", authenticate, crearViaje);

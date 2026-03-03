@@ -5,12 +5,6 @@ const viajesService = new ViajesService();
 
 export const listarViajes = async (req, res, next) => {
   try {
-    const requester = await usuario.mostrarUserPorIdSupabase(req.user.id);
-
-    if (!requester) {
-      return res.status(404).json({ error: "Usuario no encontrado." });
-    }
-
     const viajes = await viajesService.listarViajes();
     res.status(200).json(viajes);
   } catch (error) {

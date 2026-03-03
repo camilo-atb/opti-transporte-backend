@@ -19,7 +19,7 @@ class PasajerosService {
         INSERT INTO ${this.tabla}
           (id_auth_supabase, nombre, apellido, telefono, cedula, rol, estado)
         OUTPUT INSERTED.*
-        VALUES (@idAuth, @nombre, @apellido, @telefono, @cedula,'pasajero', 'activo')
+        VALUES (@idAuth, @nombre, @apellido, @telefono, @cedula, 'pasajero', 'activo')
       `);
 
     return result.recordset[0];

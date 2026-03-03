@@ -71,6 +71,69 @@ export const crearVenta = async (req, res, next) => {
   }
 };
 
+export const crearVentaPublica = async (req, res, next) => {
+  try {
+    const { viaje_id, sillas, precio_unitario, pasajero } = req.body;
+
+    if (
+      !viaje_id ||
+      !Array.isArray(sillas) ||
+      sillas.length === 0 ||
+      !precio_unitario
+    ) {
+      return res.status(400).json({
+        error: "Datos incompletos para realizar la venta."
+      });
+    }
+
+    let pasajeroDB;
+
+    // 🔥 SI EL USUARIO ESTÁ AUTENTICADO → usar su ID real
+    if (req.user?.pasajero_id) {
+      pasajeroDB = {
+        id: req.user.pasajero_id
+      };
+    } else {
+      // 🔥 FLUJO NORMAL PÚBLICO
+      if (!pasajero?.cedula) {
+        return res.status(400).json({
+          error: "Datos del pasajero requeridos."
+        });
+      }
+
+      const { cedula, nombre, apellido, telefono } = pasajero;
+
+      pasajeroDB = await pasajerosService.mostrarPasajeroPorCedula(cedula);
+
+      if (!pasajeroDB) {
+        pasajeroDB = await pasajerosService.crearPasajeroBasico({
+          cedula,
+          nombre,
+          apellido,
+          telefono,
+        });
+      }
+    }
+
+    const venta = await ventasService.crearVenta({
+      operario_id: 1, // Usuario sistema web
+      pasajero_id: pasajeroDB.id,
+      viaje_id,
+      sillas,
+      precio_unitario,
+    });
+
+    res.status(201).json({
+      success: true,
+      ventaId: venta.id,
+      message: "Venta creada exitosamente"
+    });
+
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const obtenerSillasOcupadas = async (req, res, next) => {
   try {
     const { viajeId } = req.params;
@@ -107,6 +170,23 @@ export const historialVentasOperario = async (req, res, next) => {
     res.status(200).json(historial);
 
   } catch (error) {
+    next(error);
+  }
+};
+
+export const historialVentasPasajero = async (req, res, next) => {
+  try {
+    console.log("🎯 PASAJERO ID:", req.user.pasajero_id);
+
+    const historial = await ventasService.historialPorPasajero(
+      req.user.pasajero_id
+    );
+
+    console.log("📄 HISTORIAL:", historial);
+
+    res.status(200).json(historial);
+  } catch (error) {
+    console.error("❌ ERROR HISTORIAL:", error);
     next(error);
   }
 };
@@ -156,4 +236,31 @@ export const obtenerTicketVenta = async (req, res, next) => {
     next(error);
   }
 };
+
+export const getTicketPublic = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({
+        error: "ID de la venta requerido.",
+      });
+    }
+
+  
+    const ticket = await ventasService.obtenerTicketPorVenta(id);
+
+    if (!ticket) {
+      return res.status(404).json({
+        error: "Ticket no encontrado.",
+      });
+    }
+
+    res.status(200).json(ticket);
+
+  } catch (error) {
+    next(error);
+  }
+};
+
 

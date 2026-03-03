@@ -1,6 +1,7 @@
 import supabase from "../config/supabase.js";
 import pasajerosService from "../services/pasajeros.service.js";
 
+
 // Crear pasajero
 export const signUpNewEmail = async (req, res, next) => {
   try {
@@ -12,7 +13,6 @@ export const signUpNewEmail = async (req, res, next) => {
     if (!data?.user?.id) {
       return res.status(500).json({ error: "No se pudo crear el usuario en Supabase" });
     }
-
 
     const newPasajero = await pasajerosService.crearPasajero(
       data.user.id,
@@ -42,7 +42,7 @@ export const signInPasajero = async (req, res, next) => {
     const pasajero = await pasajerosService.mostrarPasajeroPorIdSupabase(data.user.id);
     if (!pasajero) return res.status(404).json({ error: "Pasajero no encontrado" });
 
-    res.status(200).json({ session: data.session, pasajero });
+    res.status(200).json({ session: data.session, pasajero: {...pasajero, email: data.user.email,}, });
   } catch (error) {
     next(error);
   }
@@ -51,19 +51,16 @@ export const signInPasajero = async (req, res, next) => {
 // Obtener perfil #####
 export const getPerfilPasajero = async (req, res, next) => {
   try {
-    const idAuthSupabase = req.user.id; // viene del middleware authenticate
-    const pasajero = await pasajerosService.mostrarPasajeroPorIdSupabase(idAuthSupabase);
-    if (!pasajero) return res.status(404).json({ error: "No se encontró el pasajero" });
+    const pasajero = await pasajerosService.mostrarPasajeroPorIdSupabase(req.user.id);
 
-    const {data: userData, error} = await supabase.auth.admin.getUserById(idAuthSupabase);
-
-    if (error)
-      return res.status(400).json({ error: error.message });
+    if (!pasajero)
+      return res.status(404).json({ error: "No se encontró el pasajero" });
 
     res.status(200).json({
       ...pasajero,
-      email: userData.user.email,
+      email: req.user.email, // viene del middleware
     });
+
   } catch (error) {
     next(error);
   }
@@ -152,3 +149,4 @@ export const desactivarMiCuenta = async (req, res, next) => {
     next(error);
   }
 };*/
+

@@ -74,6 +74,33 @@ class VentasService {
     return result.recordset;
   }
 
+  async historialPorPasajero(pasajeroId) {
+  const pool = await getConnection();
+
+  const result = await pool
+    .request()
+    .input("pasajero_id", sql.Int, pasajeroId)
+    .query(`
+      SELECT 
+        v.id,
+        v.fecha_venta,
+        v.total,
+        vi.origen,
+        vi.destino,
+        vi.fecha_salida
+      FROM ventas v
+      JOIN tiquetes t ON t.venta_id = v.id
+      JOIN viajes vi ON vi.id = t.viaje_id
+      WHERE v.pasajero_id = @pasajero_id
+      GROUP BY 
+        v.id, v.fecha_venta, v.total,
+        vi.origen, vi.destino, vi.fecha_salida
+      ORDER BY v.fecha_venta DESC
+    `);
+
+  return result.recordset;
+}
+
   async resumenOperario(operarioId) {
     const pool = await getConnection();
 

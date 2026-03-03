@@ -33,10 +33,12 @@ const authenticatePasajero = async (req, res, next) => {
     // Guardamos info útil
     req.user = {
       id: user.id,
+      pasajero_id: pasajero.id,
       rol: pasajero.rol,
       nombre: pasajero.nombre,
       apellido: pasajero.apellido,
       telefono: pasajero.telefono,
+      email: user.email,
     };
 
     req.pasajero = pasajero;
