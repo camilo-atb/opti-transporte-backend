@@ -14,6 +14,7 @@ import viajesRoutes from "./viajes.routes.js";
 import ventasRoutes from "./ventas.route.js";
 import pasajerosRoutes from "./pasajeros.route.js";
 import reportesRoutes from "./reportes.routes.js";
+import opinionesRoutes from "./opiniones.route.js";
 
 const rutas = (app) => {
   const router = express.Router();
@@ -34,6 +35,7 @@ const rutas = (app) => {
   router.use("/viajes", viajesRoutes);
   router.use("/ventas", ventasRoutes);
   router.use("/reportes", reportesRoutes);
+  router.use("/opiniones", opinionesRoutes);
 
   app.use("/api", router);
 };
