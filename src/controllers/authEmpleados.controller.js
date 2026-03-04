@@ -20,6 +20,8 @@ const signInEmpleado = async (req, res, next) => {
       rol: usuario.rol,
       usuario,
     });
+    console.log("SESSION:", data.session);
+    console.log("ACCESS TOKEN:", data.session?.access_token);
   } catch (error) {
     next(error);
   }
