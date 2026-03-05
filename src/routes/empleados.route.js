@@ -18,7 +18,7 @@ router.get("/", authenticate, authorize(["super-usuario"]), listarUsuarios);
 // Obtener rol (empleado o pasajero) // ESTA
 router.get("/rol/:id_auth_supabase", authenticate, getUserXIdsupabase);
 
-router.get("/mi-perfil", authenticate, getMiPerfil);
+router.get("/me", authenticate, getMiPerfil);
 
 
 // Crear empleado (solo super)
