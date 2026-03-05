@@ -11,21 +11,21 @@ router.get("/:id/contenido", transparenciaController.getContenidoBySeccion);
 
 router.get("/:id/archivos", transparenciaController.getArchivosBySeccion);
 
-router.post("/", authenticate,  transparenciaController.createSeccionBySuper);
+router.post("/", authenticate, transparenciaController.createSeccionBySuper);
 
-router.patch("/:id", authenticate,  transparenciaController.updateSeccionBySuper);
+router.patch("/:id", authenticate, transparenciaController.updateSeccionBySuper);
 
-router.delete("/:id", authenticate,  transparenciaController.deleteSeccionBySuper);
+router.delete("/:id", authenticate, transparenciaController.deleteSeccionBySuper);
 
-router.post("/:id/contenido", authenticate,  transparenciaController.createContenidoBySuper);
+router.post("/:id/contenido", authenticate, transparenciaController.createContenidoBySuper);
 
-router.patch("/contenido/:id", authenticate,  transparenciaController.updateContenidoBySuper);
+router.patch("/contenido/:id", authenticate, transparenciaController.updateContenidoBySuper);
 
-router.delete("/contenido/:id", authenticate,  transparenciaController.deleteContenidoBySuper);
+router.delete("/contenido/:id", authenticate, transparenciaController.deleteContenidoBySuper);
 
-router.post("/:id/archivos", authenticate,  transparenciaController.createArchivoBySuper);
+router.post("/:id/archivos", authenticate, transparenciaController.createArchivoBySuper);
 
-router.delete("/archivos/:id", authenticate,  transparenciaController.deleteArchivoBySuper);
+router.delete("/archivos/:id", authenticate, transparenciaController.deleteArchivoBySuper);
 
 router.get(
   "/publica",

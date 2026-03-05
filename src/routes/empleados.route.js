@@ -13,7 +13,7 @@ import authorize from "../middleware/authorize.js";
 const router = express.Router();
 
 // Listar empleados (solo super)
-router.get("/", authenticate,  listarUsuarios);
+router.get("/", authenticate, listarUsuarios);
 
 // Obtener rol (empleado o pasajero) // ESTA
 router.get("/rol/:id_auth_supabase", authenticate, getUserXIdsupabase);
@@ -22,13 +22,13 @@ router.get("/me", authenticate, getMiPerfil);
 
 
 // Crear empleado (solo super)
-router.post("/", authenticate,  createUserByAdmin);
+router.post("/", authenticate, createUserByAdmin);
 
 // Desactivar cuenta (empleado o pasajero)
 router.patch(
   "/desactivar/:tipo/:id_auth_supabase",
   authenticate,
-  
+  authorize(["super-usuario"]),
   desactivarCuenta
 );
 

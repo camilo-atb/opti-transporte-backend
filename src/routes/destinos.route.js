@@ -13,12 +13,12 @@ import {
 
 const router = express.Router();
 
-router.post("/cards", authenticate, authorize(["super-usuario"]), crearCard);
-router.post("/pages/:destinoId", authenticate, authorize(["super-usuario"]), crearPage);
-router.patch("/cards/:id", authenticate, authorize(["super-usuario"]), editarCard);
-router.patch("/pages/:id", authenticate, authorize(["super-usuario"]), editarPage);
+router.post("/cards", authenticate, crearCard);
+router.post("/pages/:destinoId", authenticate, crearPage);
+router.patch("/cards/:id", authenticate, editarCard);
+router.patch("/pages/:id", authenticate, editarPage);
 router.get("/cards", obtenerCards);
 router.get("/cards/:id", obtenerDestinoCompleto);
-router.delete("/cards/:id", authenticate, authorize(["super-usuario"]), eliminarCard);
+router.delete("/cards/:id", authenticate, eliminarCard);
 
 export default router;
