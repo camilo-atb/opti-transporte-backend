@@ -62,7 +62,6 @@ class DashboardService {
       destinos: destinos.recordset[0],
       faqs: faqs.recordset[0].total,
       logos: logos.recordset[0],
-      opiniones: opiniones.recordset[0],
       transparencia: transparencia.recordset[0],
     };
   }
