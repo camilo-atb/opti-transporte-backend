@@ -1,4 +1,4 @@
-import supabaseEmpleados from "../config/supabase.empleados.js";
+import supabase from "../config/supabase.js";
 import usuario from "../services/empleado.service.js";
 import pasajerosService from "../services/pasajeros.service.js";
 
@@ -24,7 +24,7 @@ const authenticate = async (req, res, next) => {
   const {
     data: { user },
     error,
-  } = await supabaseEmpleados.auth.getUser(token);
+  } = await supabase.auth.getUser(token);
 
   // Ver respuesta de Supabase
   console.log("SUPABASE ERROR:", error);

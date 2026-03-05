@@ -1,20 +1,12 @@
-import express from "express";
-import authorize from "../middleware/authorize.js";
-import authenticate from "../middleware/authenticate.js";
-import {
-  crearOpinion,
-  obtenerOpiniones,
-  obtenerOpinionPorId,
-  actualizarOpinion,
-  eliminarOpinion,
-} from "../controllers/opiniones.controller";
+import { Router } from "express";
+import {getOpiniones,createOpinion} from "../controllers/opiniones.controller.js";
+import authenticatePasajero from "../middleware/authenticatePasajeros.js"
 
-const router = express.Router();
+const router = Router();
 
-router.post("/", authenticate, authorize(["pasajero"]), crearOpinion);
-router.get("/", authenticate, authorize(["pasajero"]), obtenerOpiniones);
-router.get("/:id", authenticate, authorize(["pasajero"]), obtenerOpinionPorId);
-router.patch("/:id", authenticate, authorize(["pasajero", "super-usuario"]), actualizarOpinion);
-router.delete("/:id", authenticate, authorize(["pasajero", "super-usuario"]), eliminarOpinion);
+router.get("/", getOpiniones);
+
+
+router.post("/", authenticatePasajero, createOpinion);
 
 export default router;

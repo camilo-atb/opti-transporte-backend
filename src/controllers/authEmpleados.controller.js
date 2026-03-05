@@ -1,4 +1,4 @@
-import supabaseEmpleados from "../config/supabase.empleados.js";
+import supabase from "../config/supabase.js";
 import userService from "../services/empleado.service.js";
 
 // Inicio de sesión empleados o superusuario
@@ -6,7 +6,7 @@ const signInEmpleado = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    const { data, error } = await supabaseEmpleados.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
