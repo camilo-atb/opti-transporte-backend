@@ -8,15 +8,15 @@ const router = express.Router();
 // Obtener preguntas
 router.get("/", preguntasController.getQuestions);
 // Modificar pregunta
-router.patch("/:id", authenticate, authorize(["super-usuario"]), preguntasController.editQuestion);
+router.patch("/:id", authenticate,  preguntasController.editQuestion);
 // Eliminar pregunta
 router.delete(
   "/:id",
   authenticate,
-  authorize(["super-usuario"]),
+  
   preguntasController.eliminarPregunta
 );
 // Crear pregunta
-router.post("/", authenticate, authorize(["super-usuario"]), preguntasController.createQuestion);
+router.post("/", authenticate,  preguntasController.createQuestion);
 
 export default router;

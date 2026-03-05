@@ -19,7 +19,7 @@ router.patch("/me", authenticatePasajero, pasajerosController.updatePasajero);
 router.patch("/me/desactivar", authenticatePasajero, pasajerosController.desactivarMiCuenta);
 
 // Superusuario
-router.get("/", authenticate, authorize(["super-usuario"]), async (req, res, next) => {
+router.get("/", authenticate,  async (req, res, next) => {
   try {
     const pasajeros = await pasajerosService.listarPasajeros();
     res.json(pasajeros);
