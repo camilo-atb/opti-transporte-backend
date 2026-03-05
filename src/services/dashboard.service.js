@@ -48,15 +48,6 @@ class DashboardService {
       FROM logos
     `);
 
-    /* ================= OPINIONES ================= */
-    const opiniones = await pool.request().query(`
-      SELECT
-        COUNT(*) AS total,
-        SUM(CASE WHEN aprobado = 1 THEN 1 ELSE 0 END) AS aprobadas,
-        SUM(CASE WHEN aprobado = 0 THEN 1 ELSE 0 END) AS pendientes
-      FROM opiniones
-    `);
-
     /* ================= TRANSPARENCIA ================= */
     const transparencia = await pool.request().query(`
       SELECT
